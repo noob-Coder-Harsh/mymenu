@@ -54,6 +54,13 @@ export default async function MerchantDashboardPage() {
           View orders
         </Link>
       </div>
+
+      <Link
+        href={`/s/${context.store.slug}`}
+        className="flex h-12 items-center justify-center rounded-2xl bg-accent text-sm font-medium text-accent-foreground"
+      >
+        View customer menu
+      </Link>
     </section>
   );
 }

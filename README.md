@@ -41,6 +41,9 @@ npm run dev
 - http://localhost:3000/merchant/login — phone OTP
 - After OTP, new merchants go to `/merchant/onboarding`, then dashboard with Open/Closed
 - `/merchant/menu` — categories, items, availability toggle
-- http://localhost:3000/s/brew-cafe — customer shell
+- Customer loop: open the store (`Open` on the dashboard), then `/s/brew-cafe` or **View customer menu**
+  - Add 2 items → cart → checkout (name, phone, Cash/UPI) → confirmation with order number
+  - Closed store: menu is browsable, Add and checkout are blocked
+- Order status on `/s/{slug}/orders/{orderId}` is a stub until merchant ops (I4)
 
-Enable **Phone** in Firebase Authentication, add `localhost` to authorized domains, and (for production SMS) enable billing.
+Enable **Phone** in Firebase Authentication, add `localhost` to authorized domains, and (for production SMS) enable billing. Allow **India (IN)** under Authentication → Settings → SMS region policy.

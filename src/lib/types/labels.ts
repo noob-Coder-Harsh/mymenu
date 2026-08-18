@@ -13,6 +13,23 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   cancelled: "Cancelled",
 };
 
+export const CUSTOMER_STATUS_STEPS: OrderStatus[] = [
+  "pending",
+  "accepted",
+  "preparing",
+  "ready",
+  "completed",
+];
+
+export const CUSTOMER_STATUS_LABELS: Record<OrderStatus, string> = {
+  pending: "Placed",
+  accepted: "Accepted",
+  preparing: "Preparing",
+  ready: "Ready",
+  completed: "Completed",
+  cancelled: "Cancelled",
+};
+
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   upi: "UPI",
   cash: "Cash",

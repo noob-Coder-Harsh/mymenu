@@ -322,6 +322,8 @@ grant select on table public.menu_categories to anon, authenticated;
 grant select on table public.menu_items to anon, authenticated;
 grant insert on table public.orders to anon, authenticated;
 grant insert on table public.order_items to anon, authenticated;
+grant all on table public.orders to service_role;
+grant all on table public.order_items to service_role;
 
 -- ---------------------------------------------------------------------------
 -- Storage (logos + menu item images). Uploads go through the service role.
