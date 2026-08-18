@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FoodBaba
 
-## Getting Started
+QR menu and ordering for cafes, carts, and small food businesses.
 
-First, run the development server:
+Next.js monolith, Supabase Postgres, Firebase phone OTP for merchants.
+
+## Setup
+
+1. Copy env and fill values from Supabase and Firebase:
+
+```bash
+cp .env.example .env.local
+```
+
+For Firebase Admin, download a service account JSON from Firebase Console → Project settings → Service accounts → Generate new private key. Save it as `firebase-service-account.json` in the repo root (gitignored) and set:
+
+```bash
+FIREBASE_SERVICE_ACCOUNT_PATH=./firebase-service-account.json
+```
+
+2. In the Supabase SQL editor, run [`schema.sql`](schema.sql).
+
+3. Seed the demo store (`brew-cafe`):
+
+```bash
+npm run seed
+```
+
+Or paste [`seed.sql`](seed.sql) into the SQL editor.
+
+4. Start the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Smoke
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- http://localhost:3000 — landing
+- http://localhost:3000/s/brew-cafe — customer shell
+- http://localhost:3000/merchant/login — merchant login shell
+- http://localhost:3000/merchant — merchant dashboard shell
+- http://localhost:3000/api/health — DB ping (`ok: true` after schema + env)
