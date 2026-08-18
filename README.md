@@ -37,7 +37,10 @@ npm run dev
 ## Smoke
 
 - http://localhost:3000 — landing
-- http://localhost:3000/s/brew-cafe — customer shell
-- http://localhost:3000/merchant/login — merchant login shell
-- http://localhost:3000/merchant — merchant dashboard shell
 - http://localhost:3000/api/health — DB ping (`ok: true` after schema + env)
+- http://localhost:3000/merchant/login — phone OTP
+- After OTP, new merchants go to `/merchant/onboarding`, then dashboard with Open/Closed
+- `/merchant/menu` — categories, items, availability toggle
+- http://localhost:3000/s/brew-cafe — customer shell
+
+Enable **Phone** in Firebase Authentication, add `localhost` to authorized domains, and (for production SMS) enable billing.

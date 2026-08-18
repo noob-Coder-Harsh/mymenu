@@ -11,7 +11,13 @@ function isActive(pathname: string, href: string, exact: boolean) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function MerchantNav() {
+export function MerchantNav({
+  storeName,
+  isOpen,
+}: {
+  storeName: string;
+  isOpen: boolean;
+}) {
   const pathname = usePathname();
 
   return (
@@ -19,7 +25,10 @@ export function MerchantNav() {
       <aside className="hidden border-r border-border bg-surface md:flex md:w-56 md:flex-col">
         <div className="border-b border-border px-4 py-4">
           <p className="text-sm font-semibold">{PRODUCT_NAME}</p>
-          <p className="text-xs text-muted">Merchant</p>
+          <p className="truncate text-xs text-muted">{storeName}</p>
+          <p className={`mt-1 text-xs font-medium ${isOpen ? "text-success" : "text-muted"}`}>
+            {isOpen ? "Open" : "Closed"}
+          </p>
         </div>
         <nav className="flex flex-1 flex-col gap-1 p-3">
           {MERCHANT_NAV.map((item) => {

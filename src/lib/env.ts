@@ -29,7 +29,7 @@ export type EnvStatus = {
 };
 
 export function getEnvStatus(): EnvStatus {
-  const missing = [...PUBLIC_KEYS, ...SERVER_KEYS].filter(
+  const missing: string[] = [...PUBLIC_KEYS, ...SERVER_KEYS].filter(
     (key) => !process.env[key],
   );
 

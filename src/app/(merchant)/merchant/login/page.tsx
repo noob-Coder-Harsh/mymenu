@@ -1,5 +1,6 @@
-import Link from "next/link";
+import { Suspense } from "react";
 import { PRODUCT_NAME } from "@/lib/constants";
+import { PhoneLoginForm } from "./phone-login-form";
 
 export default function MerchantLoginPage() {
   return (
@@ -8,15 +9,15 @@ export default function MerchantLoginPage() {
         <p className="text-sm font-medium text-accent">{PRODUCT_NAME}</p>
         <h1 className="text-2xl font-semibold tracking-tight">Merchant login</h1>
         <p className="text-sm leading-6 text-muted">
-          Phone OTP via Firebase Auth lands in I1. This page is the login shell.
+          Use your phone number. We’ll send a one-time code.
+        </p>
+        <p className="text-xs text-muted">
+          Firebase project: {process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}
         </p>
       </div>
-      <Link
-        href="/merchant"
-        className="flex h-12 items-center justify-center rounded-2xl bg-accent px-5 text-base font-medium text-accent-foreground"
-      >
-        Continue to dashboard shell
-      </Link>
+      <Suspense fallback={<p className="text-sm text-muted">Loading…</p>}>
+        <PhoneLoginForm />
+      </Suspense>
     </main>
   );
 }
