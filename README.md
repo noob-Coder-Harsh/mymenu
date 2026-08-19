@@ -44,6 +44,9 @@ npm run dev
 - Customer loop: open the store (`Open` on the dashboard), then `/s/brew-cafe` or **View customer menu**
   - Add 2 items → cart → checkout (name, phone, Cash/UPI) → confirmation with order number
   - Closed store: menu is browsable, Add and checkout are blocked
-- Order status on `/s/{slug}/orders/{orderId}` is a stub until merchant ops (I4)
+- `/merchant/orders` — New / Preparing / Ready / Completed, tap to accept → prepare → ready → complete
+- Dashboard shows today orders, sales, new-order count, and recent tickets
+- Customer `/s/{slug}/orders/{orderId}` polls every few seconds so the stepper updates live
+- Mark payment paid/unpaid on the order detail screen
 
 Enable **Phone** in Firebase Authentication, add `localhost` to authorized domains, and (for production SMS) enable billing. Allow **India (IN)** under Authentication → Settings → SMS region policy.
