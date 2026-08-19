@@ -35,6 +35,10 @@ export default async function MerchantOrderDetailPage({
       <LiveRefresh />
       <div className="flex items-start justify-between gap-3">
         <div>
+          <Link href="/merchant" className="text-sm font-medium text-accent">
+            Home
+          </Link>
+          <span className="text-muted"> · </span>
           <Link href="/merchant/orders" className="text-sm font-medium text-accent">
             Orders
           </Link>

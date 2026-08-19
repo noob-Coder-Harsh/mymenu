@@ -2,8 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { signOut } from "firebase/auth";
-import { getFirebaseAuth } from "@/lib/firebase/client";
+import { logoutMerchant } from "@/lib/auth/client-logout";
 
 export function OnboardingForm({ defaultPhone }: { defaultPhone: string }) {
   const router = useRouter();
@@ -40,12 +39,7 @@ export function OnboardingForm({ defaultPhone }: { defaultPhone: string }) {
   }
 
   async function logout() {
-    await fetch("/api/auth/session", { method: "DELETE", credentials: "include" });
-    try {
-      await signOut(getFirebaseAuth());
-    } catch {
-      // Firebase client may be unconfigured in some local setups.
-    }
+    await logoutMerchant();
     router.replace("/merchant/login");
     router.refresh();
   }

@@ -25,9 +25,9 @@ export const PRIMARY_STATUS_ACTION: Partial<
   Record<OrderStatus, { to: OrderStatus; label: string }>
 > = {
   pending: { to: "accepted", label: "Accept order" },
-  accepted: { to: "preparing", label: "Mark preparing" },
+  accepted: { to: "preparing", label: "Start preparing" },
   preparing: { to: "ready", label: "Mark ready" },
-  ready: { to: "completed", label: "Complete order" },
+  ready: { to: "completed", label: "Hand over" },
 };
 
 export function parseOrderFilter(value: string | undefined | null): MerchantOrderFilter {

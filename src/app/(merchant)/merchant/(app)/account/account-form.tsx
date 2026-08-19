@@ -1,9 +1,8 @@
 "use client";
 
-import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { getFirebaseAuth } from "@/lib/firebase/client";
+import { logoutMerchant } from "@/lib/auth/client-logout";
 import { formatPhoneDisplay } from "@/lib/phone";
 
 export function AccountForm({
@@ -45,12 +44,7 @@ export function AccountForm({
   }
 
   async function logout() {
-    await fetch("/api/auth/session", { method: "DELETE", credentials: "include" });
-    try {
-      await signOut(getFirebaseAuth());
-    } catch {
-      // Ignore Firebase sign-out errors.
-    }
+    await logoutMerchant();
     router.replace("/merchant/login");
     router.refresh();
   }

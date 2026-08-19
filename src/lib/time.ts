@@ -17,3 +17,13 @@ export function formatTimeIst(iso: string) {
     minute: "2-digit",
   }).format(new Date(iso));
 }
+
+export function formatDayTimeIst(iso: string) {
+  return new Intl.DateTimeFormat("en-IN", {
+    timeZone: INDIA_TIME_ZONE,
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(iso));
+}

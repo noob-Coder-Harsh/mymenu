@@ -8,6 +8,10 @@ export function proxy(request: NextRequest) {
   const isPublicMerchantRoute =
     pathname === "/merchant/login" || pathname.startsWith("/merchant/login/");
 
+  if (isPublicMerchantRoute && hasSession) {
+    return NextResponse.redirect(new URL("/merchant", request.url));
+  }
+
   if (pathname.startsWith("/merchant") && !isPublicMerchantRoute && !hasSession) {
     const loginUrl = new URL("/merchant/login", request.url);
     if (pathname !== "/merchant") {

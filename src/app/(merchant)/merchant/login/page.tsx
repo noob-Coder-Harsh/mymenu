@@ -1,23 +1,84 @@
+import type { Viewport } from "next";
+import Image from "next/image";
 import { Suspense } from "react";
 import { PRODUCT_NAME } from "@/lib/constants";
+import { LoginShell } from "./login-shell";
 import { PhoneLoginForm } from "./phone-login-form";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  interactiveWidget: "resizes-content",
+};
 
 export default function MerchantLoginPage() {
   return (
-    <main className="mx-auto flex min-h-full w-full max-w-md flex-1 flex-col justify-center gap-6 px-5 py-12">
-      <div className="flex flex-col gap-2">
-        <p className="text-sm font-medium text-accent">{PRODUCT_NAME}</p>
-        <h1 className="text-2xl font-semibold tracking-tight">Merchant login</h1>
-        <p className="text-sm leading-6 text-muted">
-          Use your phone number. We’ll send a one-time code.
-        </p>
-        <p className="text-xs text-muted">
-          Firebase project: {process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}
-        </p>
-      </div>
-      <Suspense fallback={<p className="text-sm text-muted">Loading…</p>}>
+    <LoginShell
+      hero={
+        <div className="relative h-56 w-full">
+          <div
+            aria-hidden
+            className="absolute -right-16 -top-24 h-[22rem] w-[22rem] rounded-full bg-[#f3c4a0]/25 blur-2xl"
+          />
+          <div
+            className="absolute -right-20 -top-24 h-[20.5rem] w-[20.5rem] overflow-hidden rounded-full"
+            style={{
+              maskImage:
+                "radial-gradient(circle at 54% 48%, #000 0%, #000 38%, transparent 72%)",
+              WebkitMaskImage:
+                "radial-gradient(circle at 54% 48%, #000 0%, #000 38%, transparent 72%)",
+            }}
+          >
+            <Image
+              src="/images/foddbaba-logo.webp"
+              alt=""
+              fill
+              sizes="328px"
+              className="object-cover object-[46%_48%] scale-110"
+              priority
+            />
+          </div>
+        </div>
+      }
+      illustration={
+        <>
+          <Image
+            src="/images/merchant-login-bottom.webp"
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover object-center"
+            priority
+          />
+          <div
+            aria-hidden
+            className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-background to-transparent"
+          />
+        </>
+      }
+    >
+      <h1 className="max-w-[12.5rem] text-[2.15rem] font-semibold leading-[1.05] tracking-[-0.045em]">
+        Merchant
+        <span className="mt-1 block text-accent">Login</span>
+      </h1>
+
+      <Suspense fallback={<p className="mt-4 text-sm text-muted">Loading…</p>}>
         <PhoneLoginForm />
       </Suspense>
-    </main>
+
+      <div className="mt-auto pt-5 text-center">
+        <p className="text-lg font-bold tracking-[-0.04em] text-accent">
+          {PRODUCT_NAME}
+        </p>
+        <p className="mt-0.5 text-xs text-muted">For food businesses</p>
+        <p className="mt-3 text-[11px] text-muted">
+          By continuing, you agree to {PRODUCT_NAME}’s
+          <span className="mt-0.5 block font-medium">
+            Terms of Service · Privacy Policy
+          </span>
+        </p>
+      </div>
+    </LoginShell>
   );
 }

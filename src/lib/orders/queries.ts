@@ -116,6 +116,7 @@ export type DashboardStats = {
   todayCount: number;
   todaySales: number;
   pendingCount: number;
+  newCustomersToday: number;
   recent: OrderWithItems[];
 };
 
@@ -130,7 +131,7 @@ export async function getDashboardStats(storeId: string): Promise<DashboardStats
   ] = await Promise.all([
     supabase
       .from("orders")
-      .select("id, total_amount, order_status")
+      .select("id, total_amount, order_status, customer_phone, customer_name")
       .eq("store_id", storeId)
       .gte("created_at", todayStart),
     supabase
@@ -160,11 +161,18 @@ export async function getDashboardStats(storeId: string): Promise<DashboardStats
     id: string;
     total_amount: number;
     order_status: OrderStatus;
+    customer_phone: string | null;
+    customer_name: string | null;
   }[];
   const activeToday = today.filter((row) => row.order_status !== "cancelled");
   const todaySales = activeToday.reduce(
     (sum, row) => sum + (parsePrice(row.total_amount) ?? 0),
     0,
+  );
+  const customers = new Set(
+    activeToday.map(
+      (row) => row.customer_phone || row.customer_name || row.id,
+    ),
   );
 
   const recentOrders = (recentRows ?? []) as Order[];
@@ -174,6 +182,35 @@ export async function getDashboardStats(storeId: string): Promise<DashboardStats
     todayCount: activeToday.length,
     todaySales: Math.round(todaySales * 100) / 100,
     pendingCount: pendingCount ?? 0,
+    newCustomersToday: customers.size,
     recent: attachItems(recentOrders, grouped),
   };
+}
+
+const ACTIVE_STATUSES: OrderStatus[] = [
+  "pending",
+  "accepted",
+  "preparing",
+  "ready",
+];
+
+export async function getActiveOpsOrders(
+  storeId: string,
+): Promise<OrderWithItems[]> {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("store_id", storeId)
+    .in("order_status", ACTIVE_STATUSES)
+    .order("created_at", { ascending: false })
+    .limit(LIST_LIMIT);
+
+  if (error) {
+    throw error;
+  }
+
+  const orders = (data ?? []) as Order[];
+  const grouped = await loadItemsByOrderId(orders.map((order) => order.id));
+  return attachItems(orders, grouped);
 }
