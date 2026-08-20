@@ -158,7 +158,6 @@ create table public.menu_items (
   category_id uuid references public.menu_categories (id) on delete set null,
   name text not null,
   description text,
-  price numeric(10, 2) not null check (price >= 0),
   image_url text,
   sort_order integer not null default 0,
   is_available boolean not null default true,
@@ -173,6 +172,30 @@ create index menu_items_store_sort_idx on public.menu_items (store_id, sort_orde
 
 create trigger menu_items_set_updated_at
 before update on public.menu_items
+for each row execute function public.set_updated_at();
+
+-- ---------------------------------------------------------------------------
+-- menu_item_variants (priced options: Small/Large, Half/Full, or single blank name)
+-- ---------------------------------------------------------------------------
+
+create table public.menu_item_variants (
+  id uuid primary key default gen_random_uuid(),
+  menu_item_id uuid not null references public.menu_items (id) on delete cascade,
+  name text not null default '',
+  price numeric(10, 2) not null check (price >= 0),
+  sort_order integer not null default 0,
+  is_available boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index menu_item_variants_menu_item_id_idx
+  on public.menu_item_variants (menu_item_id);
+create index menu_item_variants_item_sort_idx
+  on public.menu_item_variants (menu_item_id, sort_order);
+
+create trigger menu_item_variants_set_updated_at
+before update on public.menu_item_variants
 for each row execute function public.set_updated_at();
 
 -- ---------------------------------------------------------------------------
@@ -213,6 +236,7 @@ create table public.order_items (
   id uuid primary key default gen_random_uuid(),
   order_id uuid not null references public.orders (id) on delete cascade,
   menu_item_id uuid references public.menu_items (id) on delete set null,
+  menu_item_variant_id uuid references public.menu_item_variants (id) on delete set null,
   item_name text not null,
   unit_price numeric(10, 2) not null check (unit_price >= 0),
   quantity integer not null check (quantity > 0),
@@ -222,6 +246,7 @@ create table public.order_items (
 
 create index order_items_order_id_idx on public.order_items (order_id);
 create index order_items_menu_item_id_idx on public.order_items (menu_item_id);
+create index order_items_menu_item_variant_id_idx on public.order_items (menu_item_variant_id);
 
 -- ---------------------------------------------------------------------------
 -- device_tokens (FCM registration tokens for merchants)
@@ -259,6 +284,7 @@ alter table public.stores enable row level security;
 alter table public.store_settings enable row level security;
 alter table public.menu_categories enable row level security;
 alter table public.menu_items enable row level security;
+alter table public.menu_item_variants enable row level security;
 alter table public.orders enable row level security;
 alter table public.order_items enable row level security;
 alter table public.device_tokens enable row level security;
@@ -291,6 +317,20 @@ create policy "menu_items_select_public"
     )
   );
 
+create policy "menu_item_variants_select_public"
+  on public.menu_item_variants for select
+  to anon, authenticated
+  using (
+    exists (
+      select 1
+      from public.menu_items i
+      join public.stores s on s.id = i.store_id
+      where i.id = menu_item_id
+        and i.is_active = true
+        and s.is_active = true
+    )
+  );
+
 -- Customers place orders (no login)
 create policy "orders_insert_public"
   on public.orders for insert
@@ -320,10 +360,12 @@ create policy "order_items_insert_public"
 grant select on table public.stores to anon, authenticated;
 grant select on table public.menu_categories to anon, authenticated;
 grant select on table public.menu_items to anon, authenticated;
+grant select on table public.menu_item_variants to anon, authenticated;
 grant insert on table public.orders to anon, authenticated;
 grant insert on table public.order_items to anon, authenticated;
 grant all on table public.orders to service_role;
 grant all on table public.order_items to service_role;
+grant all on table public.menu_item_variants to service_role;
 
 -- ---------------------------------------------------------------------------
 -- Storage (logos + menu item images). Uploads go through the service role.

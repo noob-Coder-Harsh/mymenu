@@ -19,7 +19,9 @@ export function HomeLanding() {
           </span>
         </div>
         <MerchantStartLink
-          className="rounded-xl px-2 py-1 text-right text-sm font-medium text-accent"
+          showBusy
+          compactBusy
+          className="flex flex-col items-end rounded-xl px-2 py-1 text-right text-sm font-medium text-accent"
         >
           Login
           <span lang="hi" className="block text-[11px] font-medium text-muted">
@@ -45,6 +47,7 @@ export function HomeLanding() {
           />
 
           <MerchantStartLink
+            showBusy
             className="mt-6 flex min-h-14 w-full flex-col items-center justify-center rounded-2xl bg-accent px-5 py-3 text-accent-foreground"
           >
             <span className="text-lg font-semibold">Make your menu</span>
@@ -233,6 +236,7 @@ export function HomeLanding() {
             </span>
           </p>
           <MerchantStartLink
+            showBusy
             className="mt-6 flex min-h-14 w-full flex-col items-center justify-center rounded-2xl bg-accent px-5 py-3 text-accent-foreground"
           >
             <span className="text-lg font-semibold">Start now</span>
@@ -257,6 +261,7 @@ export function HomeLanding() {
             hiClassName="mt-1 block text-sm leading-6 text-muted"
           />
           <MerchantStartLink
+            showBusy
             className="mt-6 flex min-h-14 w-full flex-col items-center justify-center rounded-2xl bg-accent px-5 py-3 text-accent-foreground"
           >
             <span className="text-lg font-semibold">Make your menu</span>
@@ -270,6 +275,8 @@ export function HomeLanding() {
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 px-5 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-sm">
         <div className="mx-auto max-w-md">
           <MerchantStartLink
+            showBusy
+            compactBusy
             className="flex min-h-14 w-full flex-col items-center justify-center rounded-2xl bg-accent px-5 py-2.5 text-accent-foreground shadow-[0_10px_30px_-12px_rgba(196,92,38,0.8)]"
           >
             <span className="text-base font-semibold">Make your menu</span>

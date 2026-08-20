@@ -88,7 +88,6 @@ async function seed() {
       category_id: DEMO_IDS.categoryCoffee,
       name: "Cappuccino",
       description: "Creamy espresso with steamed milk.",
-      price: 120,
       sort_order: 0,
       is_available: true,
       is_active: true,
@@ -99,7 +98,6 @@ async function seed() {
       category_id: DEMO_IDS.categoryCoffee,
       name: "Latte",
       description: "Smooth espresso with extra milk.",
-      price: 140,
       sort_order: 1,
       is_available: true,
       is_active: true,
@@ -110,7 +108,6 @@ async function seed() {
       category_id: DEMO_IDS.categoryCoffee,
       name: "Americano",
       description: "Espresso with hot water.",
-      price: 100,
       sort_order: 2,
       is_available: true,
       is_active: true,
@@ -121,7 +118,6 @@ async function seed() {
       category_id: DEMO_IDS.categorySnacks,
       name: "Veg Sandwich",
       description: "Toasted sandwich with fresh veggies.",
-      price: 180,
       sort_order: 0,
       is_available: true,
       is_active: true,
@@ -132,7 +128,6 @@ async function seed() {
       category_id: DEMO_IDS.categorySnacks,
       name: "Fries",
       description: "Crispy salted fries.",
-      price: 120,
       sort_order: 1,
       is_available: false,
       is_active: true,
@@ -140,6 +135,68 @@ async function seed() {
   ]);
   if (itemError) {
     throw itemError;
+  }
+
+  const { error: variantError } = await supabase.from("menu_item_variants").upsert([
+    {
+      id: DEMO_IDS.variantCappuccino,
+      menu_item_id: DEMO_IDS.itemCappuccino,
+      name: "",
+      price: 120,
+      sort_order: 0,
+      is_available: true,
+    },
+    {
+      id: DEMO_IDS.variantLatte,
+      menu_item_id: DEMO_IDS.itemLatte,
+      name: "",
+      price: 140,
+      sort_order: 0,
+      is_available: true,
+    },
+    {
+      id: DEMO_IDS.variantAmericanoSmall,
+      menu_item_id: DEMO_IDS.itemAmericano,
+      name: "Small",
+      price: 100,
+      sort_order: 0,
+      is_available: true,
+    },
+    {
+      id: DEMO_IDS.variantAmericanoMedium,
+      menu_item_id: DEMO_IDS.itemAmericano,
+      name: "Medium",
+      price: 120,
+      sort_order: 1,
+      is_available: true,
+    },
+    {
+      id: DEMO_IDS.variantAmericanoLarge,
+      menu_item_id: DEMO_IDS.itemAmericano,
+      name: "Large",
+      price: 140,
+      sort_order: 2,
+      is_available: true,
+    },
+    {
+      id: DEMO_IDS.variantSandwich,
+      menu_item_id: DEMO_IDS.itemSandwich,
+      name: "",
+      price: 180,
+      sort_order: 0,
+      is_available: true,
+    },
+    {
+      id: DEMO_IDS.variantFries,
+      menu_item_id: DEMO_IDS.itemFries,
+      name: "",
+      price: 120,
+      sort_order: 0,
+      is_available: true,
+    },
+  ]);
+  if (variantError) {
+    throw variantError;
   }
 
   console.log(`Seeded demo store /s/${DEMO_STORE_SLUG}`);

@@ -17,10 +17,12 @@ export default async function MerchantCategoriesPage() {
       <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Categories</h1>
-          <p className="text-sm text-muted">This order is what customers see.</p>
+          <p className="text-sm text-muted">
+            You can also manage these from the Menu screen.
+          </p>
         </div>
         <Link href="/merchant/menu" className="text-sm font-medium text-accent">
-          Back
+          Back to menu
         </Link>
       </div>
       <CategoryManager categories={categories} />

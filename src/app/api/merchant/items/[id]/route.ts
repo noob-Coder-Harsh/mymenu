@@ -1,7 +1,9 @@
 import { requireMerchant } from "@/lib/auth/merchant";
 import { jsonError } from "@/lib/http";
-import { parsePrice } from "@/lib/money";
+import { parsePriceRows } from "@/lib/menu/prices";
+import { normalizeMenuItem, normalizeVariant } from "@/lib/menu/queries";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import type { MenuItem, MenuItemVariant } from "@/lib/types/database";
 
 async function getOwnedItem(storeId: string, id: string) {
   const supabase = getSupabaseAdmin();
@@ -11,7 +13,30 @@ async function getOwnedItem(storeId: string, id: string) {
     .eq("id", id)
     .eq("store_id", storeId)
     .maybeSingle();
-  return data;
+  return data as MenuItem | null;
+}
+
+async function loadItemWithVariants(storeId: string, id: string) {
+  const item = await getOwnedItem(storeId, id);
+  if (!item) {
+    return null;
+  }
+  const supabase = getSupabaseAdmin();
+  const { data: variants, error } = await supabase
+    .from("menu_item_variants")
+    .select("*")
+    .eq("menu_item_id", id)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return normalizeMenuItem(
+    item,
+    ((variants ?? []) as MenuItemVariant[]).map(normalizeVariant),
+  );
 }
 
 export async function PATCH(
@@ -33,7 +58,7 @@ export async function PATCH(
     name?: string;
     description?: string | null;
     category_id?: string | null;
-    price?: number | string;
+    prices?: unknown;
     is_available?: boolean;
     is_active?: boolean;
   };
@@ -47,7 +72,6 @@ export async function PATCH(
     name?: string;
     description?: string | null;
     category_id?: string | null;
-    price?: number;
     is_available?: boolean;
     is_active?: boolean;
   } = {};
@@ -78,13 +102,6 @@ export async function PATCH(
     }
     updates.category_id = categoryId;
   }
-  if ("price" in body) {
-    const price = parsePrice(body.price);
-    if (price === null) {
-      return jsonError("Enter a valid price", 400);
-    }
-    updates.price = price;
-  }
   if (typeof body.is_available === "boolean") {
     updates.is_available = body.is_available;
   }
@@ -92,24 +109,113 @@ export async function PATCH(
     updates.is_active = body.is_active;
   }
 
-  if (Object.keys(updates).length === 0) {
+  const hasPrices = "prices" in body;
+  let parsedPrices: ReturnType<typeof parsePriceRows> | null = null;
+  if (hasPrices) {
+    parsedPrices = parsePriceRows(body.prices);
+    if (!parsedPrices.ok) {
+      return jsonError(parsedPrices.message, 400);
+    }
+  }
+
+  if (Object.keys(updates).length === 0 && !hasPrices) {
     return jsonError("No updates provided", 400);
   }
 
   const supabase = getSupabaseAdmin();
-  const { data: item, error } = await supabase
-    .from("menu_items")
-    .update(updates)
-    .eq("id", id)
-    .eq("store_id", auth.store.id)
-    .select("*")
-    .single();
 
-  if (error || !item) {
-    return jsonError(error?.message ?? "Could not update item", 500);
+  if (Object.keys(updates).length > 0) {
+    const { error } = await supabase
+      .from("menu_items")
+      .update(updates)
+      .eq("id", id)
+      .eq("store_id", auth.store.id);
+
+    if (error) {
+      return jsonError(error.message, 500);
+    }
   }
 
-  return Response.json({ item });
+  if (parsedPrices?.ok) {
+    const { data: currentVariants, error: currentError } = await supabase
+      .from("menu_item_variants")
+      .select("id")
+      .eq("menu_item_id", id);
+
+    if (currentError) {
+      return jsonError(currentError.message, 500);
+    }
+
+    const keepIds = new Set(
+      parsedPrices.rows.map((row) => row.id).filter((value): value is string => Boolean(value)),
+    );
+    const toDelete = (currentVariants ?? [])
+      .map((row) => row.id as string)
+      .filter((variantId) => !keepIds.has(variantId));
+
+    if (toDelete.length > 0) {
+      const { error: deleteError } = await supabase
+        .from("menu_item_variants")
+        .delete()
+        .in("id", toDelete)
+        .eq("menu_item_id", id);
+      if (deleteError) {
+        return jsonError(deleteError.message, 500);
+      }
+    }
+
+    for (const [index, row] of parsedPrices.rows.entries()) {
+      if (row.id) {
+        const { data: owned } = await supabase
+          .from("menu_item_variants")
+          .select("id")
+          .eq("id", row.id)
+          .eq("menu_item_id", id)
+          .maybeSingle();
+        if (!owned) {
+          return jsonError("Price option not found", 400);
+        }
+        const { error: updateError } = await supabase
+          .from("menu_item_variants")
+          .update({
+            name: row.name,
+            price: row.price,
+            sort_order: index,
+            is_available: row.is_available,
+          })
+          .eq("id", row.id)
+          .eq("menu_item_id", id);
+        if (updateError) {
+          return jsonError(updateError.message, 500);
+        }
+      } else {
+        const { error: insertError } = await supabase
+          .from("menu_item_variants")
+          .insert({
+            menu_item_id: id,
+            name: row.name,
+            price: row.price,
+            sort_order: index,
+            is_available: row.is_available,
+          });
+        if (insertError) {
+          return jsonError(insertError.message, 500);
+        }
+      }
+    }
+  }
+
+  try {
+    const item = await loadItemWithVariants(auth.store.id, id);
+    if (!item) {
+      return jsonError("Item not found", 404);
+    }
+    return Response.json({ item });
+  } catch (reason) {
+    const message =
+      reason instanceof Error ? reason.message : "Could not load item";
+    return jsonError(message, 500);
+  }
 }
 
 export async function DELETE(

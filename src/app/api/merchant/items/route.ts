@@ -1,8 +1,9 @@
 import { requireMerchant } from "@/lib/auth/merchant";
 import { jsonError } from "@/lib/http";
-import { getStoreMenu, nextSortOrder } from "@/lib/menu/queries";
-import { parsePrice } from "@/lib/money";
+import { parsePriceRows } from "@/lib/menu/prices";
+import { getStoreMenu, nextSortOrder, normalizeMenuItem, normalizeVariant } from "@/lib/menu/queries";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import type { MenuItem, MenuItemVariant } from "@/lib/types/database";
 
 export async function GET() {
   const auth = await requireMerchant({ storeRequired: true });
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
     name?: string;
     description?: string;
     category_id?: string | null;
-    price?: number | string;
+    prices?: unknown;
     is_available?: boolean;
     is_active?: boolean;
   };
@@ -45,9 +46,9 @@ export async function POST(request: Request) {
     return jsonError("Item name must be at least 2 characters", 400);
   }
 
-  const price = parsePrice(body.price);
-  if (price === null) {
-    return jsonError("Enter a valid price", 400);
+  const parsed = parsePriceRows(body.prices);
+  if (!parsed.ok) {
+    return jsonError(parsed.message, 400);
   }
 
   const categoryId = body.category_id?.trim() || null;
@@ -73,7 +74,6 @@ export async function POST(request: Request) {
       category_id: categoryId,
       name,
       description: body.description?.trim() || null,
-      price,
       sort_order: sortOrder,
       is_available: body.is_available ?? true,
       is_active: body.is_active ?? true,
@@ -85,5 +85,31 @@ export async function POST(request: Request) {
     return jsonError(error?.message ?? "Could not create item", 500);
   }
 
-  return Response.json({ item }, { status: 201 });
+  const { data: variants, error: variantError } = await supabase
+    .from("menu_item_variants")
+    .insert(
+      parsed.rows.map((row, index) => ({
+        menu_item_id: item.id,
+        name: row.name,
+        price: row.price,
+        sort_order: index,
+        is_available: row.is_available,
+      })),
+    )
+    .select("*");
+
+  if (variantError || !variants?.length) {
+    await supabase.from("menu_items").delete().eq("id", item.id);
+    return jsonError(variantError?.message ?? "Could not save prices", 500);
+  }
+
+  return Response.json(
+    {
+      item: normalizeMenuItem(
+        item as MenuItem,
+        (variants as MenuItemVariant[]).map(normalizeVariant),
+      ),
+    },
+    { status: 201 },
+  );
 }

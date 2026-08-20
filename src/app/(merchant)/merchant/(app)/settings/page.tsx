@@ -1,10 +1,6 @@
-import { ComingSoon } from "@/components/coming-soon";
+import { redirect } from "next/navigation";
 
+/** Settings live on the store edit page. */
 export default function MerchantSettingsPage() {
-  return (
-    <ComingSoon
-      title="Settings"
-      note="Currency, order prefix, and auto-accept land in I5."
-    />
-  );
+  redirect("/merchant/store/edit#settings");
 }

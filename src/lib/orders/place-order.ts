@@ -2,6 +2,7 @@ import "server-only";
 
 import { toE164India } from "@/lib/phone";
 import { parsePrice } from "@/lib/money";
+import { formatOrderItemName } from "@/lib/menu/types";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getPublicStoreBySlug } from "@/lib/catalog/public-store";
 import type { Order, OrderItem, PaymentMethod } from "@/lib/types/database";
@@ -12,7 +13,7 @@ export type PlaceOrderInput = {
   customerPhone: string;
   paymentMethod: PaymentMethod;
   notes: string;
-  items: { menuItemId: string; quantity: number }[];
+  items: { menuItemVariantId: string; quantity: number }[];
 };
 
 export type PlaceOrderResult = {
@@ -92,33 +93,63 @@ export async function placeOrder(
     return { ok: false, message: "Too many items in this order", status: 400 };
   }
 
-  const qtyById = new Map<string, number>();
+  const qtyByVariantId = new Map<string, number>();
   for (const line of input.items) {
     const quantity = Number(line.quantity);
-    if (!line.menuItemId || !Number.isInteger(quantity) || quantity < 1 || quantity > MAX_QTY) {
+    if (
+      !line.menuItemVariantId ||
+      !Number.isInteger(quantity) ||
+      quantity < 1 ||
+      quantity > MAX_QTY
+    ) {
       return { ok: false, message: "Invalid item quantity", status: 400 };
     }
-    qtyById.set(line.menuItemId, (qtyById.get(line.menuItemId) ?? 0) + quantity);
+    qtyByVariantId.set(
+      line.menuItemVariantId,
+      (qtyByVariantId.get(line.menuItemVariantId) ?? 0) + quantity,
+    );
   }
 
-  const menuById = new Map(catalog.items.map((item) => [item.id, item]));
+  const variantLookup = new Map<
+    string,
+    { menuItemId: string; itemName: string; variantName: string; unitPrice: number }
+  >();
+  for (const item of catalog.items) {
+    if (!item.is_available) {
+      continue;
+    }
+    for (const variant of item.variants) {
+      if (!variant.is_available) {
+        continue;
+      }
+      variantLookup.set(variant.id, {
+        menuItemId: item.id,
+        itemName: item.name,
+        variantName: variant.name,
+        unitPrice: variant.price,
+      });
+    }
+  }
+
   const lines: {
     menu_item_id: string;
+    menu_item_variant_id: string;
     item_name: string;
     unit_price: number;
     quantity: number;
     total_amount: number;
   }[] = [];
 
-  for (const [menuItemId, quantity] of qtyById) {
-    const item = menuById.get(menuItemId);
-    if (!item || !item.is_available) {
+  for (const [variantId, quantity] of qtyByVariantId) {
+    const match = variantLookup.get(variantId);
+    if (!match) {
       continue;
     }
-    const unitPrice = parsePrice(item.price) ?? 0;
+    const unitPrice = parsePrice(match.unitPrice) ?? 0;
     lines.push({
-      menu_item_id: item.id,
-      item_name: item.name,
+      menu_item_id: match.menuItemId,
+      menu_item_variant_id: variantId,
+      item_name: formatOrderItemName(match.itemName, match.variantName),
       unit_price: unitPrice,
       quantity,
       total_amount: Math.round(unitPrice * quantity * 100) / 100,
@@ -169,6 +200,7 @@ export async function placeOrder(
       lines.map((line) => ({
         order_id: order.id,
         menu_item_id: line.menu_item_id,
+        menu_item_variant_id: line.menu_item_variant_id,
         item_name: line.item_name,
         unit_price: line.unit_price,
         quantity: line.quantity,

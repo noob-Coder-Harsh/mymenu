@@ -17,10 +17,10 @@ type CartContextValue = {
   lines: CartLine[];
   notes: string;
   ready: boolean;
-  quantityFor: (menuItemId: string) => number;
+  quantityFor: (variantId: string) => number;
   itemCount: number;
-  add: (menuItemId: string, quantity?: number) => void;
-  setQuantity: (menuItemId: string, quantity: number) => void;
+  add: (variantId: string, quantity?: number) => void;
+  setQuantity: (variantId: string, quantity: number) => void;
   setNotes: (notes: string) => void;
   clear: () => void;
 };
@@ -66,25 +66,25 @@ export function CartProvider({
     window.localStorage.setItem(cartStorageKey(slug), JSON.stringify(cart));
   }, [cart, ready, slug]);
 
-  const setQuantity = useCallback((menuItemId: string, quantity: number) => {
+  const setQuantity = useCallback((variantId: string, quantity: number) => {
     setCart((current) => {
       const nextQty = Math.min(20, Math.max(0, Math.floor(quantity)));
-      const without = current.lines.filter((line) => line.menuItemId !== menuItemId);
+      const without = current.lines.filter((line) => line.variantId !== variantId);
       return {
         ...current,
-        lines: nextQty < 1 ? without : [...without, { menuItemId, quantity: nextQty }],
+        lines: nextQty < 1 ? without : [...without, { variantId, quantity: nextQty }],
       };
     });
   }, []);
 
-  const add = useCallback((menuItemId: string, quantity = 1) => {
+  const add = useCallback((variantId: string, quantity = 1) => {
     setCart((current) => {
-      const existing = current.lines.find((line) => line.menuItemId === menuItemId);
+      const existing = current.lines.find((line) => line.variantId === variantId);
       const nextQty = Math.min(20, (existing?.quantity ?? 0) + quantity);
-      const without = current.lines.filter((line) => line.menuItemId !== menuItemId);
+      const without = current.lines.filter((line) => line.variantId !== variantId);
       return {
         ...current,
-        lines: [...without, { menuItemId, quantity: nextQty }],
+        lines: [...without, { variantId, quantity: nextQty }],
       };
     });
   }, []);
@@ -103,8 +103,8 @@ export function CartProvider({
       lines: cart.lines,
       notes: cart.notes,
       ready,
-      quantityFor: (menuItemId: string) =>
-        cart.lines.find((line) => line.menuItemId === menuItemId)?.quantity ?? 0,
+      quantityFor: (variantId: string) =>
+        cart.lines.find((line) => line.variantId === variantId)?.quantity ?? 0,
       itemCount: cart.lines.reduce((sum, line) => sum + line.quantity, 0),
       add,
       setQuantity,

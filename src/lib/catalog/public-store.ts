@@ -38,7 +38,11 @@ export const getPublicStoreBySlug = cache(async function getPublicStoreBySlug(
     store,
     settings,
     categories: menu.categories.filter((category) => category.is_active),
-    items: menu.items.filter((item) => item.is_active),
+    items: menu.items.filter(
+      (item) =>
+        item.is_active &&
+        item.variants.some((variant) => variant.is_available),
+    ),
   };
 });
 

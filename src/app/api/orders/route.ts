@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     customer_phone?: string;
     payment_method?: PaymentMethod;
     notes?: string;
-    items?: { menu_item_id?: string; quantity?: number }[];
+    items?: { menu_item_variant_id?: string; quantity?: number }[];
   };
 
   try {
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     paymentMethod: body.payment_method ?? "cash",
     notes: body.notes ?? "",
     items: (body.items ?? []).map((item) => ({
-      menuItemId: item.menu_item_id ?? "",
+      menuItemVariantId: item.menu_item_variant_id ?? "",
       quantity: item.quantity ?? 0,
     })),
   });

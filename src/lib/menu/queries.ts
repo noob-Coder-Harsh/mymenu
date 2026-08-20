@@ -2,10 +2,15 @@ import "server-only";
 
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { parsePrice } from "@/lib/money";
-import type { MenuCategory, MenuItem } from "@/lib/types/database";
-import type { MenuItemView } from "@/lib/menu/types";
+import type { MenuCategory, MenuItem, MenuItemVariant } from "@/lib/types/database";
+import type { MenuItemView, MenuItemVariantView } from "@/lib/menu/types";
 
 export type { MenuItemView } from "@/lib/menu/types";
+export {
+  displayPrice,
+  formatOrderItemName,
+  hasMultiplePrices,
+} from "@/lib/menu/types";
 
 export async function getStoreMenu(storeId: string) {
   const supabase = getSupabaseAdmin();
@@ -32,16 +37,58 @@ export async function getStoreMenu(storeId: string) {
     throw itemError;
   }
 
+  const menuItems = (items ?? []) as MenuItem[];
+  const itemIds = menuItems.map((item) => item.id);
+
+  let variantsByItem = new Map<string, MenuItemVariantView[]>();
+  if (itemIds.length > 0) {
+    const { data: variants, error: variantError } = await supabase
+      .from("menu_item_variants")
+      .select("*")
+      .in("menu_item_id", itemIds)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+
+    if (variantError) {
+      throw variantError;
+    }
+
+    variantsByItem = groupVariants((variants ?? []) as MenuItemVariant[]);
+  }
+
   return {
     categories: (categories ?? []) as MenuCategory[],
-    items: ((items ?? []) as MenuItem[]).map(normalizeMenuItem),
+    items: menuItems.map((item) =>
+      normalizeMenuItem(item, variantsByItem.get(item.id) ?? []),
+    ),
   };
 }
 
-export function normalizeMenuItem(item: MenuItem): MenuItemView {
+function groupVariants(variants: MenuItemVariant[]) {
+  const map = new Map<string, MenuItemVariantView[]>();
+  for (const variant of variants) {
+    const list = map.get(variant.menu_item_id) ?? [];
+    list.push(normalizeVariant(variant));
+    map.set(variant.menu_item_id, list);
+  }
+  return map;
+}
+
+export function normalizeVariant(variant: MenuItemVariant): MenuItemVariantView {
+  return {
+    ...variant,
+    name: variant.name ?? "",
+    price: parsePrice(variant.price) ?? 0,
+  };
+}
+
+export function normalizeMenuItem(
+  item: MenuItem,
+  variants: MenuItemVariantView[],
+): MenuItemView {
   return {
     ...item,
-    price: parsePrice(item.price) ?? 0,
+    variants,
   };
 }
 

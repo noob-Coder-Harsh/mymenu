@@ -86,7 +86,6 @@ insert into public.menu_items (
   category_id,
   name,
   description,
-  price,
   sort_order,
   is_available,
   is_active
@@ -98,7 +97,6 @@ values
     '33333333-3333-3333-3333-333333333331',
     'Cappuccino',
     'Creamy espresso with steamed milk.',
-    120,
     0,
     true,
     true
@@ -109,7 +107,6 @@ values
     '33333333-3333-3333-3333-333333333331',
     'Latte',
     'Smooth espresso with extra milk.',
-    140,
     1,
     true,
     true
@@ -120,7 +117,6 @@ values
     '33333333-3333-3333-3333-333333333331',
     'Americano',
     'Espresso with hot water.',
-    100,
     2,
     true,
     true
@@ -131,7 +127,6 @@ values
     '33333333-3333-3333-3333-333333333332',
     'Veg Sandwich',
     'Toasted sandwich with fresh veggies.',
-    180,
     0,
     true,
     true
@@ -142,7 +137,6 @@ values
     '33333333-3333-3333-3333-333333333332',
     'Fries',
     'Crispy salted fries.',
-    120,
     1,
     false,
     true
@@ -151,7 +145,78 @@ on conflict (id) do update
 set
   name = excluded.name,
   description = excluded.description,
-  price = excluded.price,
   sort_order = excluded.sort_order,
   is_available = excluded.is_available,
   is_active = true;
+
+insert into public.menu_item_variants (
+  id,
+  menu_item_id,
+  name,
+  price,
+  sort_order,
+  is_available
+)
+values
+  (
+    '55555555-5555-5555-5555-555555555551',
+    '44444444-4444-4444-4444-444444444441',
+    '',
+    120,
+    0,
+    true
+  ),
+  (
+    '55555555-5555-5555-5555-555555555552',
+    '44444444-4444-4444-4444-444444444442',
+    '',
+    140,
+    0,
+    true
+  ),
+  (
+    '55555555-5555-5555-5555-555555555553',
+    '44444444-4444-4444-4444-444444444443',
+    'Small',
+    100,
+    0,
+    true
+  ),
+  (
+    '55555555-5555-5555-5555-555555555554',
+    '44444444-4444-4444-4444-444444444443',
+    'Medium',
+    120,
+    1,
+    true
+  ),
+  (
+    '55555555-5555-5555-5555-555555555555',
+    '44444444-4444-4444-4444-444444444443',
+    'Large',
+    140,
+    2,
+    true
+  ),
+  (
+    '55555555-5555-5555-5555-555555555556',
+    '44444444-4444-4444-4444-444444444444',
+    '',
+    180,
+    0,
+    true
+  ),
+  (
+    '55555555-5555-5555-5555-555555555557',
+    '44444444-4444-4444-4444-444444444445',
+    '',
+    120,
+    0,
+    true
+  )
+on conflict (id) do update
+set
+  name = excluded.name,
+  price = excluded.price,
+  sort_order = excluded.sort_order,
+  is_available = excluded.is_available;

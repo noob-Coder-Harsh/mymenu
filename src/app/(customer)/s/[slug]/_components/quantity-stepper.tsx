@@ -1,19 +1,20 @@
 "use client";
 
-import type { MenuItemView } from "@/lib/menu/types";
 import { useCart } from "./cart-provider";
 
 export function QuantityStepper({
-  item,
+  variantId,
+  available = true,
   disabled,
 }: {
-  item: MenuItemView;
+  variantId: string;
+  available?: boolean;
   disabled?: boolean;
 }) {
   const { quantityFor, setQuantity, add } = useCart();
-  const quantity = quantityFor(item.id);
+  const quantity = quantityFor(variantId);
 
-  if (!item.is_available) {
+  if (!available) {
     return (
       <span className="rounded-full bg-background px-3 py-1 text-xs font-medium text-muted">
         Sold out
@@ -33,7 +34,7 @@ export function QuantityStepper({
     return (
       <button
         type="button"
-        onClick={() => add(item.id)}
+        onClick={() => add(variantId)}
         className="h-9 rounded-full bg-accent px-4 text-sm font-medium text-accent-foreground"
       >
         Add
@@ -46,7 +47,7 @@ export function QuantityStepper({
       <button
         type="button"
         className="px-3 text-lg leading-none"
-        onClick={() => setQuantity(item.id, quantity - 1)}
+        onClick={() => setQuantity(variantId, quantity - 1)}
         aria-label="Decrease quantity"
       >
         −
@@ -55,7 +56,7 @@ export function QuantityStepper({
       <button
         type="button"
         className="px-3 text-lg leading-none"
-        onClick={() => setQuantity(item.id, quantity + 1)}
+        onClick={() => setQuantity(variantId, quantity + 1)}
         aria-label="Increase quantity"
       >
         +

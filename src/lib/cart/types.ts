@@ -1,5 +1,5 @@
 export type CartLine = {
-  menuItemId: string;
+  variantId: string;
   quantity: number;
 };
 
@@ -9,22 +9,23 @@ export type StoredCart = {
 };
 
 export function cartStorageKey(slug: string) {
-  return `foodbaba:cart:${slug}`;
+  return `foodbaba:cart:v2:${slug}`;
 }
 
 function parseLine(line: unknown): CartLine | null {
   if (typeof line !== "object" || !line) {
     return null;
   }
-  const candidate = line as CartLine;
-  if (typeof candidate.menuItemId !== "string" || typeof candidate.quantity !== "number") {
+  const candidate = line as Partial<CartLine> & { menuItemId?: string };
+  // Ignore legacy v1 carts keyed by menuItemId
+  if (typeof candidate.variantId !== "string" || typeof candidate.quantity !== "number") {
     return null;
   }
   const quantity = Math.floor(candidate.quantity);
   if (quantity < 1 || quantity > 20) {
     return null;
   }
-  return { menuItemId: candidate.menuItemId, quantity };
+  return { variantId: candidate.variantId, quantity };
 }
 
 function parseLines(value: unknown): CartLine[] {

@@ -65,11 +65,21 @@ export type MenuItem = {
   category_id: string | null;
   name: string;
   description: string | null;
-  price: number;
   image_url: string | null;
   sort_order: number;
   is_available: boolean;
   is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MenuItemVariant = {
+  id: string;
+  menu_item_id: string;
+  name: string;
+  price: number;
+  sort_order: number;
+  is_available: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -95,6 +105,7 @@ export type OrderItem = {
   id: string;
   order_id: string;
   menu_item_id: string | null;
+  menu_item_variant_id: string | null;
   item_name: string;
   unit_price: number;
   quantity: number;
@@ -146,8 +157,14 @@ export type Database = {
       >;
       menu_items: Table<
         MenuItem,
-        Partial<MenuItem> & Pick<MenuItem, "store_id" | "name" | "price">,
+        Partial<MenuItem> & Pick<MenuItem, "store_id" | "name">,
         Partial<MenuItem>
+      >;
+      menu_item_variants: Table<
+        MenuItemVariant,
+        Partial<MenuItemVariant> &
+          Pick<MenuItemVariant, "menu_item_id" | "price">,
+        Partial<MenuItemVariant>
       >;
       orders: Table<
         Order,

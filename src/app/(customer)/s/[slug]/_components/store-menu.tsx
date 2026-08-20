@@ -3,7 +3,11 @@
 import { useMemo, useState } from "react";
 import { formatInr } from "@/lib/money";
 import type { MenuCategory } from "@/lib/types/database";
-import type { MenuItemView } from "@/lib/menu/types";
+import {
+  displayPrice,
+  hasMultiplePrices,
+  type MenuItemView,
+} from "@/lib/menu/types";
 import { ItemSheet } from "./item-sheet";
 import { QuantityStepper } from "./quantity-stepper";
 
@@ -156,6 +160,19 @@ function MenuCard({
   storeOpen: boolean;
   onOpen: () => void;
 }) {
+  const price = displayPrice(item);
+  const multi = hasMultiplePrices(item);
+  const singleVariant =
+    !multi
+      ? item.variants.find((variant) => variant.is_available) ?? item.variants[0]
+      : null;
+  const priceLabel =
+    price === null
+      ? "—"
+      : multi
+        ? `from ${formatInr(price)}`
+        : formatInr(price);
+
   return (
     <article className="flex gap-3 rounded-2xl border border-border bg-surface p-3">
       <button type="button" onClick={onOpen} className="flex min-w-0 flex-1 gap-3 text-left">
@@ -176,11 +193,30 @@ function MenuCard({
               {item.description}
             </p>
           ) : null}
-          <p className="mt-1 text-sm font-semibold">{formatInr(item.price)}</p>
+          <p className="mt-1 text-sm font-semibold">{priceLabel}</p>
         </div>
       </button>
       <div className="flex items-center">
-        <QuantityStepper item={item} disabled={!storeOpen} />
+        {multi ? (
+          <button
+            type="button"
+            onClick={onOpen}
+            disabled={!storeOpen || !item.is_available}
+            className="h-9 rounded-full bg-accent px-4 text-sm font-medium text-accent-foreground disabled:opacity-50"
+          >
+            {!item.is_available ? "Sold out" : !storeOpen ? "Closed" : "Options"}
+          </button>
+        ) : singleVariant ? (
+          <QuantityStepper
+            variantId={singleVariant.id}
+            available={item.is_available && singleVariant.is_available}
+            disabled={!storeOpen}
+          />
+        ) : (
+          <span className="rounded-full bg-background px-3 py-1 text-xs font-medium text-muted">
+            Sold out
+          </span>
+        )}
       </div>
     </article>
   );

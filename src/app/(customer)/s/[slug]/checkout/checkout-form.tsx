@@ -93,7 +93,7 @@ export function CheckoutForm({
           payment_method: paymentMethod,
           notes,
           items: summary.available.map((line) => ({
-            menu_item_id: line.item.id,
+            menu_item_variant_id: line.variant.id,
             quantity: line.quantity,
           })),
         }),
@@ -123,9 +123,9 @@ export function CheckoutForm({
 
       <section className="flex flex-col gap-2 rounded-2xl border border-border bg-surface p-4">
         {summary.available.map((line) => (
-          <div key={line.item.id} className="flex justify-between text-sm">
+          <div key={line.variant.id} className="flex justify-between text-sm">
             <span>
-              {line.quantity} × {line.item.name}
+              {line.quantity} × {line.label}
             </span>
             <span>{formatInr(line.lineTotal)}</span>
           </div>

@@ -1,32 +1,146 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type MouseEvent, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 import { resolveMerchantDestination } from "@/lib/auth/resolve-merchant-destination";
+
+type MerchantStartContextValue = {
+  pending: boolean;
+  go: (signedInHref?: string) => Promise<void>;
+};
+
+const MerchantStartContext = createContext<MerchantStartContextValue | null>(
+  null,
+);
+
+export function MerchantStartProvider({ children }: { children: ReactNode }) {
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+  const inFlight = useRef(false);
+
+  const go = useCallback(
+    async (signedInHref = "/merchant") => {
+      if (inFlight.current) {
+        return;
+      }
+      inFlight.current = true;
+      setPending(true);
+      try {
+        const href = await resolveMerchantDestination(signedInHref);
+        router.replace(href);
+        if (href === "/merchant/login") {
+          inFlight.current = false;
+          setPending(false);
+        }
+      } catch {
+        inFlight.current = false;
+        setPending(false);
+      }
+    },
+    [router],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function redirectIfSignedIn() {
+      try {
+        const href = await resolveMerchantDestination("/merchant");
+        if (cancelled || href === "/merchant/login") {
+          return;
+        }
+        inFlight.current = true;
+        setPending(true);
+        router.replace(href);
+      } catch {
+        // Stay on landing for guests.
+      }
+    }
+
+    void redirectIfSignedIn();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
+
+  return (
+    <MerchantStartContext.Provider value={{ pending, go }}>
+      {children}
+    </MerchantStartContext.Provider>
+  );
+}
+
+function BusyLabel({ compact }: { compact?: boolean }) {
+  return (
+    <>
+      <span
+        className={
+          compact ? "text-sm font-semibold" : "text-lg font-semibold"
+        }
+      >
+        Opening…
+      </span>
+      <span
+        lang="hi"
+        className={
+          compact
+            ? "block text-[11px] font-medium opacity-90"
+            : "block text-sm font-medium opacity-90"
+        }
+      >
+        खुल रहा है…
+      </span>
+    </>
+  );
+}
 
 export function MerchantStartLink({
   children,
   className,
   signedInHref = "/merchant",
+  showBusy = false,
+  compactBusy = false,
 }: {
   children: ReactNode;
   className?: string;
   signedInHref?: string;
+  /** When true, replace label with loading text while auth redirect is pending. */
+  showBusy?: boolean;
+  compactBusy?: boolean;
 }) {
+  const ctx = useContext(MerchantStartContext);
   const router = useRouter();
-  const [pending, setPending] = useState(false);
+  const [localPending, setLocalPending] = useState(false);
+  const pending = ctx?.pending ?? localPending;
 
   async function onClick(event: MouseEvent<HTMLAnchorElement>) {
     event.preventDefault();
-    if (pending) {
+    if (ctx) {
+      await ctx.go(signedInHref);
       return;
     }
-    setPending(true);
+    if (localPending) {
+      return;
+    }
+    setLocalPending(true);
     try {
       const href = await resolveMerchantDestination(signedInHref);
       router.replace(href);
-    } finally {
-      setPending(false);
+      if (href === "/merchant/login") {
+        setLocalPending(false);
+      }
+    } catch {
+      setLocalPending(false);
     }
   }
 
@@ -37,7 +151,7 @@ export function MerchantStartLink({
       className={`${className ?? ""} ${pending ? "pointer-events-none opacity-70" : ""}`}
       aria-busy={pending}
     >
-      {children}
+      {showBusy && pending ? <BusyLabel compact={compactBusy} /> : children}
     </a>
   );
 }

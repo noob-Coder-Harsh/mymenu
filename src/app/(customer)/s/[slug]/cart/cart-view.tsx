@@ -54,31 +54,41 @@ export function CartView({
       <div className="flex flex-col gap-3">
         {available.map((line) => (
           <div
-            key={line.item.id}
+            key={line.variant.id}
             className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3"
           >
             <div className="min-w-0 flex-1">
-              <p className="font-medium">{line.item.name}</p>
+              <p className="font-medium">{line.label}</p>
               <p className="text-sm text-muted">
-                {formatInr(line.item.price)} × {line.quantity}
+                {formatInr(line.variant.price)} × {line.quantity}
               </p>
             </div>
             <p className="text-sm font-semibold">{formatInr(line.lineTotal)}</p>
-            <QuantityStepper item={line.item} disabled={!storeOpen} />
+            <QuantityStepper
+              variantId={line.variant.id}
+              available={line.item.is_available && line.variant.is_available}
+              disabled={!storeOpen}
+            />
           </div>
         ))}
         {unavailable.map((line) => (
           <div
-            key={line.menuItemId}
+            key={line.variantId}
             className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3 opacity-70"
           >
             <div className="min-w-0 flex-1">
-              <p className="font-medium">{line.item?.name ?? "Unavailable item"}</p>
+              <p className="font-medium">
+                {line.item && line.variant
+                  ? line.variant.name.trim()
+                    ? `${line.item.name} · ${line.variant.name}`
+                    : line.item.name
+                  : "Unavailable item"}
+              </p>
               <p className="text-sm text-danger">Sold out or removed from the menu</p>
             </div>
             <button
               type="button"
-              onClick={() => setQuantity(line.menuItemId, 0)}
+              onClick={() => setQuantity(line.variantId, 0)}
               className="text-sm font-medium text-accent"
             >
               Remove

@@ -4,7 +4,7 @@ export { STORE_ASSETS_BUCKET };
 
 export function storeAssetPath(
   storeId: string,
-  kind: "logo" | "item",
+  kind: "logo" | "item" | "qr",
   fileName: string,
 ) {
   return `${storeId}/${kind}/${fileName}`;

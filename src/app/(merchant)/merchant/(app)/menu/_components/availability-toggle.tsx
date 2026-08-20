@@ -37,14 +37,17 @@ export function AvailabilityToggle({
   return (
     <button
       type="button"
-      onClick={() => void toggle()}
+      onClick={(event) => {
+        event.stopPropagation();
+        void toggle();
+      }}
       disabled={pending}
-      className={`min-w-24 rounded-full px-3 py-1.5 text-xs font-semibold ${
+      className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
         available ? "bg-success text-white" : "bg-background text-muted"
       }`}
       aria-pressed={available}
     >
-      {available ? "Available" : "Sold out"}
+      {available ? "Available" : "Unavailable"}
     </button>
   );
 }
