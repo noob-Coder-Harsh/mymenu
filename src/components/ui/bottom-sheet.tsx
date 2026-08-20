@@ -8,12 +8,15 @@ export function BottomSheet({
   onClose,
   children,
   size = "default",
+  padForNav = false,
 }: {
   open: boolean;
   title: string;
   onClose: () => void;
   children: ReactNode;
   size?: "default" | "form";
+  /** Extra bottom padding for merchant bottom nav. */
+  padForNav?: boolean;
 }) {
   useEffect(() => {
     if (!open) {
@@ -59,18 +62,24 @@ export function BottomSheet({
             className="absolute top-2 left-1/2 h-1 w-10 -translate-x-1/2 rounded-full bg-border md:hidden"
             aria-hidden
           />
-          <h2 className="min-w-0 flex-1 truncate pr-3 pt-2 text-base font-semibold md:pt-0">
+          <h2 className="min-w-0 flex-1 truncate pr-3 pt-2 text-base font-bold tracking-tight md:pt-0">
             {title}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="shrink-0 pt-2 text-sm font-medium text-muted md:pt-0"
+            className="shrink-0 pt-2 text-sm font-semibold text-muted md:pt-0"
           >
             Close
           </button>
         </div>
-        <div className="overflow-y-auto overscroll-contain px-4 pt-4 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-6">
+        <div
+          className={`overflow-y-auto overscroll-contain px-4 pt-4 ${
+            padForNav
+              ? "pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-6"
+              : "pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))]"
+          }`}
+        >
           {children}
         </div>
       </div>

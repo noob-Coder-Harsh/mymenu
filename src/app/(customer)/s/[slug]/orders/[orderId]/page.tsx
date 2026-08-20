@@ -6,13 +6,10 @@ import { OrderStatusLive } from "./order-status-live";
 
 export default async function CustomerOrderPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ slug: string; orderId: string }>;
-  searchParams: Promise<{ placed?: string }>;
 }) {
   const { slug, orderId } = await params;
-  const { placed } = await searchParams;
   const catalog = await getPublicStoreBySlug(slug);
   if (!catalog) {
     notFound();
@@ -23,20 +20,8 @@ export default async function CustomerOrderPage({
     notFound();
   }
 
-  const justPlaced = placed === "1";
-
   return (
-    <div className="flex flex-1 flex-col gap-6 px-4 py-5">
-      {justPlaced ? (
-        <section className="rounded-2xl border border-border bg-surface px-4 py-6 text-center">
-          <p className="text-3xl">✓</p>
-          <h1 className="mt-2 text-xl font-semibold">Order placed</h1>
-          <p className="mt-1 text-sm text-muted">We have received your order.</p>
-        </section>
-      ) : (
-        <h1 className="text-xl font-semibold tracking-tight">Order status</h1>
-      )}
-
+    <div className="flex flex-1 flex-col gap-4 px-4 pt-4 pb-8">
       <OrderStatusLive
         slug={slug}
         orderId={orderId}
@@ -50,26 +35,32 @@ export default async function CustomerOrderPage({
         }}
       />
 
-      <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-semibold">Items</h2>
+      <section className="customer-card flex flex-col gap-2.5 p-4">
+        <h2 className="text-[11px] font-bold tracking-[0.14em] text-muted uppercase">
+          Items
+        </h2>
         {data.items.length === 0 ? (
           <p className="text-sm text-danger">No items were saved on this order.</p>
         ) : (
           data.items.map((item) => (
-            <div key={item.id} className="flex justify-between text-sm">
-              <span>
-                {item.quantity} × {item.item_name}
+            <div key={item.id} className="flex justify-between gap-3 text-sm">
+              <span className="min-w-0">
+                <span className="font-semibold">{item.quantity} ×</span> {item.item_name}
               </span>
-              <span>{formatInr(item.total_amount)}</span>
+              <span className="shrink-0 font-semibold tabular-nums">
+                {formatInr(item.total_amount)}
+              </span>
             </div>
           ))
         )}
         {data.order.notes ? (
-          <p className="mt-2 text-sm text-muted">Note: {data.order.notes}</p>
+          <p className="font-script mt-1 border-t border-dashed border-border pt-2 text-[15px] text-muted">
+            Note: {data.order.notes}
+          </p>
         ) : null}
       </section>
 
-      <Link href={`/s/${slug}`} className="text-center text-sm font-medium text-accent">
+      <Link href={`/s/${slug}`} className="customer-link text-center">
         Order something else
       </Link>
     </div>

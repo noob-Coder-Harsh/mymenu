@@ -6,17 +6,23 @@ export function QuantityStepper({
   variantId,
   available = true,
   disabled,
+  compact = false,
 }: {
   variantId: string;
   available?: boolean;
   disabled?: boolean;
+  compact?: boolean;
 }) {
   const { quantityFor, setQuantity, add } = useCart();
   const quantity = quantityFor(variantId);
 
   if (!available) {
     return (
-      <span className="rounded-full bg-background px-3 py-1 text-xs font-medium text-muted">
+      <span
+        className={`rounded-full bg-background px-2.5 py-1 font-medium text-muted ${
+          compact ? "text-[11px]" : "text-xs"
+        }`}
+      >
         Sold out
       </span>
     );
@@ -24,7 +30,11 @@ export function QuantityStepper({
 
   if (disabled) {
     return (
-      <span className="rounded-full bg-background px-3 py-1 text-xs font-medium text-muted">
+      <span
+        className={`rounded-full bg-background px-2.5 py-1 font-medium text-muted ${
+          compact ? "text-[11px]" : "text-xs"
+        }`}
+      >
         Closed
       </span>
     );
@@ -35,7 +45,9 @@ export function QuantityStepper({
       <button
         type="button"
         onClick={() => add(variantId)}
-        className="h-9 rounded-full bg-accent px-4 text-sm font-medium text-accent-foreground"
+        className={`rounded-full bg-accent font-medium text-accent-foreground ${
+          compact ? "h-8 px-3 text-xs" : "h-9 px-4 text-sm"
+        }`}
       >
         Add
       </button>
@@ -43,19 +55,29 @@ export function QuantityStepper({
   }
 
   return (
-    <div className="flex h-9 items-center rounded-full bg-accent text-accent-foreground">
+    <div
+      className={`flex items-center rounded-full bg-accent text-accent-foreground ${
+        compact ? "h-8" : "h-9"
+      }`}
+    >
       <button
         type="button"
-        className="px-3 text-lg leading-none"
+        className={`leading-none ${compact ? "px-2.5 text-base" : "px-3 text-lg"}`}
         onClick={() => setQuantity(variantId, quantity - 1)}
         aria-label="Decrease quantity"
       >
         −
       </button>
-      <span className="min-w-4 text-center text-sm font-semibold">{quantity}</span>
+      <span
+        className={`min-w-4 text-center font-semibold ${
+          compact ? "text-xs" : "text-sm"
+        }`}
+      >
+        {quantity}
+      </span>
       <button
         type="button"
-        className="px-3 text-lg leading-none"
+        className={`leading-none ${compact ? "px-2.5 text-base" : "px-3 text-lg"}`}
         onClick={() => setQuantity(variantId, quantity + 1)}
         aria-label="Increase quantity"
       >

@@ -15,10 +15,13 @@ export default async function CustomerCheckoutPage({
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-5 px-4 py-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold tracking-tight">Checkout</h1>
-        <Link href={`/s/${slug}/cart`} className="text-sm font-medium text-accent">
+    <div className="flex flex-1 flex-col gap-4 px-4 pt-4 pb-8">
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <p className="font-script text-[15px] text-muted">One last step</p>
+          <h1 className="text-xl font-bold tracking-tight">Checkout</h1>
+        </div>
+        <Link href={`/s/${slug}/cart`} className="customer-link pb-0.5">
           Cart
         </Link>
       </div>

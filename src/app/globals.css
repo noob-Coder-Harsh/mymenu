@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f3ee;
+  --background: #f7f1ea;
   --foreground: #2c1810;
   --surface: #fffdf9;
-  --muted: #8a7468;
-  --border: #eadfd6;
-  --accent: #c45c26;
+  --muted: #6d5d55;
+  --border: #e6d9cf;
+  --accent: #a65d37;
   --accent-foreground: #fffdf9;
-  --success: #2f6f4e;
+  --success: #2e7d32;
   --danger: #b42318;
 }
 
@@ -24,10 +24,102 @@
   --color-danger: var(--danger);
   --font-sans: var(--font-geist-sans), var(--font-noto-devanagari);
   --font-mono: var(--font-geist-mono);
+  --font-menu: var(--font-menu-sans), var(--font-geist-sans), system-ui, sans-serif;
+  --font-script: var(--font-menu-script), cursive;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+.customer-store {
+  font-family: var(--font-menu);
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -10%, rgba(255, 253, 249, 0.95), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 100% 20%, rgba(166, 93, 55, 0.08), transparent 50%),
+    radial-gradient(ellipse 60% 45% at 0% 70%, rgba(184, 137, 70, 0.1), transparent 50%),
+    linear-gradient(180deg, #faf6f1 0%, #f3ebe3 45%, #efe4d8 100%);
+  color: var(--foreground);
+}
+
+.customer-store .font-script {
+  font-family: var(--font-script);
+}
+
+.customer-store .customer-card {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: #fffefb;
+  box-shadow: 0 1px 0 rgba(44, 24, 16, 0.03);
+}
+
+.customer-store .customer-input {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: #fffefb;
+  outline: none;
+}
+
+.customer-store .customer-input:focus,
+.customer-store .customer-input:focus-within {
+  border-color: var(--accent);
+}
+
+.customer-store .customer-btn {
+  display: flex;
+  height: 3rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  background: var(--accent);
+  color: var(--accent-foreground);
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 10px 24px -16px rgba(166, 93, 55, 0.7);
+}
+
+.customer-store .customer-btn:disabled {
+  opacity: 0.6;
+}
+
+.customer-store .customer-link {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* Receipt-style jagged bottom edge */
+.menu-receipt {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 1.15rem 1.15rem 0 0;
+  box-shadow:
+    0 1px 0 rgba(44, 24, 16, 0.04),
+    0 18px 40px -28px rgba(44, 24, 16, 0.35);
+}
+
+.menu-receipt-edge {
+  display: block;
+  width: calc(100% + 2px);
+  margin-left: -1px;
+  height: 12px;
+  color: var(--surface);
+  filter: drop-shadow(0 1px 0 var(--border));
+}
+
+/* Soft paper label for category titles */
+.menu-section-label {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem 0.35rem 0.7rem;
+  background: linear-gradient(90deg, #f0e6db 0%, #f6efe7 70%, #efe4d8 100%);
+  color: var(--foreground);
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%);
+  box-shadow: inset 0 0 0 1px rgba(166, 93, 55, 0.08);
 }

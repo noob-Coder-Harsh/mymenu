@@ -20,16 +20,16 @@ export function CartView({
   const { available, unavailable, subtotal, itemCount } = buildCartEntries(lines, items);
 
   if (!ready) {
-    return <p className="text-sm text-muted">Loading cart…</p>;
+    return <p className="font-script text-base text-muted">Loading cart…</p>;
   }
 
   if (itemCount === 0 && unavailable.length === 0) {
     return (
-      <div className="flex flex-col gap-3">
-        <p className="text-sm text-muted">
+      <div className="customer-card flex flex-col gap-3 px-4 py-8 text-center">
+        <p className="font-script text-lg text-muted">
           {storeOpen ? "Your cart is empty." : "This store is closed. Checkout is paused."}
         </p>
-        <Link href={`/s/${slug}`} className="text-sm font-medium text-accent">
+        <Link href={`/s/${slug}`} className="customer-link">
           Browse menu
         </Link>
       </div>
@@ -37,59 +37,58 @@ export function CartView({
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       {unavailable.length > 0 ? (
-        <p className="text-sm text-danger">
+        <p className="rounded-xl border border-danger/20 bg-danger/10 px-3 py-2 text-sm text-danger">
           {unavailable.length} {unavailable.length === 1 ? "item is" : "items are"} no longer
           available and cannot be checked out.
         </p>
       ) : null}
 
       {!storeOpen ? (
-        <p className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-muted">
+        <p className="customer-card px-4 py-3 text-sm text-muted">
           This store is closed. You can review your cart, but you cannot check out yet.
         </p>
       ) : null}
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2.5">
         {available.map((line) => (
-          <div
-            key={line.variant.id}
-            className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3"
-          >
+          <div key={line.variant.id} className="customer-card flex items-center gap-3 p-3">
             <div className="min-w-0 flex-1">
-              <p className="font-medium">{line.label}</p>
-              <p className="text-sm text-muted">
-                {formatInr(line.variant.price)} × {line.quantity}
+              <p className="text-[15px] font-semibold tracking-tight">{line.label}</p>
+              <p className="mt-0.5 text-sm text-muted">
+                {formatInr(line.variant.price)}
+                <span className="font-script text-muted"> × {line.quantity}</span>
               </p>
             </div>
-            <p className="text-sm font-semibold">{formatInr(line.lineTotal)}</p>
+            <p className="text-sm font-bold tabular-nums">{formatInr(line.lineTotal)}</p>
             <QuantityStepper
               variantId={line.variant.id}
               available={line.item.is_available && line.variant.is_available}
               disabled={!storeOpen}
+              compact
             />
           </div>
         ))}
         {unavailable.map((line) => (
           <div
             key={line.variantId}
-            className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3 opacity-70"
+            className="customer-card flex items-center gap-3 p-3 opacity-70"
           >
             <div className="min-w-0 flex-1">
-              <p className="font-medium">
+              <p className="text-[15px] font-semibold tracking-tight">
                 {line.item && line.variant
                   ? line.variant.name.trim()
                     ? `${line.item.name} · ${line.variant.name}`
                     : line.item.name
                   : "Unavailable item"}
               </p>
-              <p className="text-sm text-danger">Sold out or removed from the menu</p>
+              <p className="mt-0.5 text-sm text-danger">Sold out or removed from the menu</p>
             </div>
             <button
               type="button"
               onClick={() => setQuantity(line.variantId, 0)}
-              className="text-sm font-medium text-accent"
+              className="customer-link"
             >
               Remove
             </button>
@@ -99,7 +98,7 @@ export function CartView({
 
       {itemCount > 0 ? (
         <>
-          <label className="flex flex-col gap-2 text-sm font-medium">
+          <label className="flex flex-col gap-2 text-sm font-semibold">
             Notes
             <textarea
               value={notes}
@@ -107,32 +106,31 @@ export function CartView({
               maxLength={300}
               rows={3}
               placeholder="Less spicy, extra napkins…"
-              className="rounded-2xl border border-border bg-surface px-4 py-3 text-base font-normal outline-none focus:border-accent"
+              className="customer-input px-4 py-3 text-base font-normal"
             />
           </label>
 
-          <div className="flex items-center justify-between text-base font-semibold">
+          <div className="customer-card flex items-center justify-between px-4 py-3 text-base font-bold">
             <span>Subtotal</span>
-            <span>{formatInr(subtotal)}</span>
+            <span className="tabular-nums">{formatInr(subtotal)}</span>
           </div>
         </>
       ) : null}
 
       {storeOpen && itemCount > 0 ? (
-        <Link
-          href={`/s/${slug}/checkout`}
-          className="flex h-12 items-center justify-center rounded-2xl bg-accent text-base font-medium text-accent-foreground"
-        >
+        <Link href={`/s/${slug}/checkout`} className="customer-btn">
           Proceed to checkout
         </Link>
       ) : null}
 
       {!storeOpen && itemCount > 0 ? (
-        <p className="text-center text-sm text-muted">Checkout is available when the store opens.</p>
+        <p className="font-script text-center text-base text-muted">
+          Checkout is available when the store opens.
+        </p>
       ) : null}
 
       {itemCount === 0 ? (
-        <Link href={`/s/${slug}`} className="text-sm font-medium text-accent">
+        <Link href={`/s/${slug}`} className="customer-link text-center">
           Browse menu
         </Link>
       ) : null}

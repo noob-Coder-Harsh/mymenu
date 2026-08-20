@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { formatInr } from "@/lib/money";
-import { displayPrice, hasMultiplePrices } from "@/lib/menu/types";
-import type { MenuItemView } from "@/lib/menu/types";
+import { hasMultiplePrices, type MenuItemView } from "@/lib/menu/types";
 import { QuantityStepper } from "./quantity-stepper";
 
 export function ItemSheet({
@@ -20,109 +20,63 @@ export function ItemSheet({
     [item.variants],
   );
   const multi = hasMultiplePrices(item) && sellable.length > 1;
-  const [selectedVariantId, setSelectedVariantId] = useState(
-    () => sellable[0]?.id ?? item.variants[0]?.id ?? "",
-  );
-
-  useEffect(() => {
-    function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    }
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = previous;
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [onClose]);
-
-  const selected =
-    sellable.find((variant) => variant.id === selectedVariantId) ?? sellable[0] ?? null;
-  const listPrice = displayPrice(item);
+  const variants = multi ? sellable : sellable.slice(0, 1);
 
   return (
-    <div className="fixed inset-0 z-20 flex items-end justify-center bg-black/40">
+    <BottomSheet open title={item.name} onClose={onClose}>
+      {item.description ? (
+        <p className="font-script mb-4 text-[17px] leading-6 text-muted">
+          {item.description}
+        </p>
+      ) : null}
+
+      {!item.is_available || variants.length === 0 ? (
+        <p className="rounded-2xl bg-background px-4 py-3 text-sm text-muted">
+          Sold out right now.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-2.5">
+          <p className="font-script text-[15px] text-muted">
+            {multi ? "Pick sizes — add as many as you like" : "Add to cart"}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {variants.map((variant) => (
+              <div
+                key={variant.id}
+                className="flex min-w-[calc(50%-0.25rem)] flex-1 items-center gap-2 rounded-2xl border border-border bg-[#fffefb] px-3 py-2.5"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold">
+                    {variant.name.trim() || "Regular"}
+                  </p>
+                  <p className="text-sm font-bold tabular-nums text-accent">
+                    {formatInr(variant.price)}
+                  </p>
+                </div>
+                <QuantityStepper
+                  variantId={variant.id}
+                  available={item.is_available && variant.is_available}
+                  disabled={!storeOpen}
+                  compact
+                />
+              </div>
+            ))}
+          </div>
+          {!storeOpen ? (
+            <p className="pt-1 text-sm text-muted">
+              Store is closed — browsing only for now.
+            </p>
+          ) : null}
+        </div>
+      )}
+
       <button
         type="button"
-        className="absolute inset-0"
-        aria-label="Close item details"
         onClick={onClose}
-      />
-      <div
-        role="dialog"
-        aria-modal="true"
-        className="relative z-10 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-surface p-4 pb-8"
+        className="mt-5 flex h-12 w-full items-center justify-center rounded-2xl bg-accent text-base font-semibold text-accent-foreground"
       >
-        {item.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={item.image_url}
-            alt=""
-            className="mb-4 h-44 w-full rounded-2xl object-cover"
-          />
-        ) : null}
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold">{item.name}</h2>
-            {item.description ? (
-              <p className="mt-1 text-sm leading-6 text-muted">{item.description}</p>
-            ) : null}
-          </div>
-          <p className="text-base font-semibold">
-            {selected
-              ? formatInr(selected.price)
-              : listPrice !== null
-                ? formatInr(listPrice)
-                : "—"}
-          </p>
-        </div>
-
-        {multi ? (
-          <div className="mt-4 flex flex-col gap-2">
-            <p className="text-sm font-medium">Choose size</p>
-            <div className="flex flex-col gap-2">
-              {sellable.map((variant) => {
-                const active = variant.id === selected?.id;
-                return (
-                  <button
-                    key={variant.id}
-                    type="button"
-                    onClick={() => setSelectedVariantId(variant.id)}
-                    className={`flex h-12 items-center justify-between rounded-2xl border px-4 text-sm ${
-                      active
-                        ? "border-accent bg-accent/10 font-medium"
-                        : "border-border bg-background"
-                    }`}
-                  >
-                    <span>{variant.name.trim() || "Regular"}</span>
-                    <span>{formatInr(variant.price)}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ) : null}
-
-        <div className="mt-5 flex items-center justify-between">
-          {selected ? (
-            <QuantityStepper
-              variantId={selected.id}
-              available={item.is_available && selected.is_available}
-              disabled={!storeOpen}
-            />
-          ) : (
-            <span className="rounded-full bg-background px-3 py-1 text-xs font-medium text-muted">
-              Sold out
-            </span>
-          )}
-          <button type="button" onClick={onClose} className="text-sm font-medium text-muted">
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
+        Done
+      </button>
+    </BottomSheet>
   );
 }
