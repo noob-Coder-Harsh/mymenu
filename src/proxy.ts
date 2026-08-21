@@ -8,6 +8,11 @@ export function proxy(request: NextRequest) {
   const isPublicMerchantRoute =
     pathname === "/merchant/login" || pathname.startsWith("/merchant/login/");
 
+  // Logged-in merchants skip the marketing page immediately (crawlers have no cookie).
+  if (pathname === "/" && hasSession) {
+    return NextResponse.redirect(new URL("/merchant", request.url));
+  }
+
   if (isPublicMerchantRoute && hasSession) {
     return NextResponse.redirect(new URL("/merchant", request.url));
   }
@@ -24,5 +29,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/merchant", "/merchant/:path*"],
+  matcher: ["/", "/merchant", "/merchant/:path*"],
 };

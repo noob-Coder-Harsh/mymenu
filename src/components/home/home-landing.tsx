@@ -40,9 +40,9 @@ export function HomeLanding() {
             hiClassName="mt-2 block text-[1.35rem] font-semibold text-foreground"
           />
           <Bilingual
-            en="Customers open it on their mobile."
-            hi="अब ग्राहक मोबाइल में मेनू देखेंगे।"
-            className="mt-4 max-w-[20rem] text-base leading-7"
+            en="Free QR menu, ordering & billing for QSR and food carts."
+            hi="QSR, चाय-कॉफ़ी कार्ट के लिए मुफ़्त QR मेनू और बिलिंग।"
+            className="mt-4 max-w-[22rem] text-base leading-7"
             hiClassName="mt-1 block text-[0.95rem] leading-6 text-muted"
           />
 
@@ -134,6 +134,37 @@ export function HomeLanding() {
                   className="pt-0.5 text-[15px] font-semibold leading-snug"
                   hiClassName="mt-1 block text-sm font-medium leading-5 text-muted"
                 />
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section>
+          <Bilingual
+            as="h2"
+            en="Built for small food businesses"
+            hi="छोटे food businesses के लिए"
+            className="text-xl font-semibold leading-snug"
+            hiClassName="mt-1 block text-lg font-semibold text-foreground"
+          />
+          <Bilingual
+            en="Free digital menu and billing software for QSR counters, cafes, tea carts, coffee carts, momos carts, and cloud kitchens."
+            hi="QSR, कैफ़े, चाय-कॉफ़ी कार्ट, मोमोज कार्ट और cloud kitchen के लिए मुफ़्त डिजिटल मेनू व बिलिंग।"
+            className="mt-3 text-base leading-7"
+            hiClassName="mt-1 block text-sm leading-6 text-muted"
+          />
+          <ul className="mt-5 flex flex-col gap-2">
+            {AUDIENCES.map((item) => (
+              <li
+                key={item.en}
+                className="border-b border-border pb-3 last:border-b-0 last:pb-0"
+              >
+                <p className="text-[15px] font-semibold leading-snug">
+                  {item.en}
+                </p>
+                <p lang="hi" className="mt-0.5 text-sm text-muted">
+                  {item.hi}
+                </p>
               </li>
             ))}
           </ul>
@@ -331,9 +362,33 @@ const BENEFITS = [
     hi: "सामान और कीमत खुद बदलें।",
   },
   {
+    icon: "🧾",
+    en: "Take orders and keep simple billing.",
+    hi: "ऑर्डर लें और आसान बिलिंग रखें।",
+  },
+  {
     icon: "🏪",
     en: "Your name and photo. Your menu.",
     hi: "अपना नाम और फोटो। अपना ही मेनू।",
+  },
+] as const;
+
+const AUDIENCES = [
+  {
+    en: "QSR & quick counters — free ordering + billing",
+    hi: "QSR और quick counter — मुफ़्त ऑर्डरिंग व बिलिंग",
+  },
+  {
+    en: "Tea, coffee & juice carts — QR menu on the stall",
+    hi: "चाय, कॉफ़ी, जूस कार्ट — दुकान पर QR मेनू",
+  },
+  {
+    en: "Momos, fries & snack carts — phone orders",
+    hi: "मोमोज, फ्राइज़, स्नैक कार्ट — फ़ोन से ऑर्डर",
+  },
+  {
+    en: "Cafes & cloud kitchens — digital menu, no app needed",
+    hi: "कैफ़े और cloud kitchen — ऐप के बिना डिजिटल मेनू",
   },
 ] as const;
 

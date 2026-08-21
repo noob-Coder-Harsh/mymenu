@@ -22,35 +22,45 @@ const MerchantStartContext = createContext<MerchantStartContextValue | null>(
   null,
 );
 
+/** Full page navigation — soft router.replace can stall on the static landing. */
+function navigateAway(href: string) {
+  window.location.replace(href);
+}
+
 export function MerchantStartProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const inFlight = useRef(false);
 
-  const go = useCallback(
-    async (signedInHref = "/merchant") => {
-      if (inFlight.current) {
-        return;
-      }
-      inFlight.current = true;
-      setPending(true);
-      try {
-        const href = await resolveMerchantDestination(signedInHref);
-        router.replace(href);
-        if (href === "/merchant/login") {
-          inFlight.current = false;
-          setPending(false);
-        }
-      } catch {
+  const go = useCallback(async (signedInHref = "/merchant") => {
+    if (inFlight.current) {
+      return;
+    }
+    inFlight.current = true;
+    setPending(true);
+    try {
+      const href = await resolveMerchantDestination(signedInHref);
+      if (href === "/merchant/login") {
         inFlight.current = false;
         setPending(false);
+        router.replace(href);
+        return;
       }
-    },
-    [router],
-  );
+      navigateAway(href);
+    } catch {
+      inFlight.current = false;
+      setPending(false);
+    }
+  }, [router]);
 
   useEffect(() => {
     let cancelled = false;
+    const failSafe = window.setTimeout(() => {
+      if (!cancelled) {
+        inFlight.current = false;
+        setPending(false);
+      }
+    }, 12_000);
 
     async function redirectIfSignedIn() {
       try {
@@ -60,7 +70,7 @@ export function MerchantStartProvider({ children }: { children: ReactNode }) {
         }
         inFlight.current = true;
         setPending(true);
-        router.replace(href);
+        navigateAway(href);
       } catch {
         // Stay on landing for guests.
       }
@@ -70,8 +80,9 @@ export function MerchantStartProvider({ children }: { children: ReactNode }) {
 
     return () => {
       cancelled = true;
+      window.clearTimeout(failSafe);
     };
-  }, [router]);
+  }, []);
 
   return (
     <MerchantStartContext.Provider value={{ pending, go }}>
@@ -135,10 +146,12 @@ export function MerchantStartLink({
     setLocalPending(true);
     try {
       const href = await resolveMerchantDestination(signedInHref);
-      router.replace(href);
       if (href === "/merchant/login") {
         setLocalPending(false);
+        router.replace(href);
+        return;
       }
+      navigateAway(href);
     } catch {
       setLocalPending(false);
     }

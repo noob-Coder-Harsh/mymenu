@@ -2,6 +2,7 @@ import { getMerchantContext, upsertMerchantFromFirebase } from "@/lib/auth/merch
 import {
   clearSessionCookie,
   createSessionCookie,
+  readSessionCookie,
   setSessionCookie,
 } from "@/lib/auth/session";
 import { verifyFirebaseIdToken } from "@/lib/auth/verify-id-token";
@@ -26,7 +27,9 @@ async function getOwnedStore(userId: string): Promise<Store | null> {
 export async function GET() {
   const context = await getMerchantContext();
   if (!context) {
-    await clearSessionCookie();
+    if (await readSessionCookie()) {
+      await clearSessionCookie();
+    }
     return jsonError("Unauthorized", 401);
   }
 

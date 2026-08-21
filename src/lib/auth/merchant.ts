@@ -1,10 +1,6 @@
 import "server-only";
 
-import {
-  clearSessionCookie,
-  readSessionCookie,
-  verifySessionCookieValue,
-} from "@/lib/auth/session";
+import { readSessionCookie, verifySessionCookieValue } from "@/lib/auth/session";
 import { jsonError } from "@/lib/http";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import type { Store, User } from "@/lib/types/database";
@@ -14,6 +10,7 @@ export type MerchantContext = {
   store: Store | null;
 };
 
+// Cookie clearing belongs in Route Handlers only (see /api/auth/session).
 export async function getMerchantContext(): Promise<MerchantContext | null> {
   const sessionCookie = await readSessionCookie();
   if (!sessionCookie) {
@@ -30,7 +27,6 @@ export async function getMerchantContext(): Promise<MerchantContext | null> {
       .maybeSingle();
 
     if (error || !user || !user.is_active) {
-      await clearSessionCookie();
       return null;
     }
 
@@ -45,7 +41,6 @@ export async function getMerchantContext(): Promise<MerchantContext | null> {
 
     return { user, store: store ?? null };
   } catch {
-    await clearSessionCookie();
     return null;
   }
 }
