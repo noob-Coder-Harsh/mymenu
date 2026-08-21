@@ -4,35 +4,31 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { HomeOrder } from "@/lib/orders/home-order";
 import type { OrderStatus } from "@/lib/types/database";
-import { HomeHeader } from "./home-header";
 import { HomeOrderCard } from "./home-order-card";
+import { HomeStoreFooter } from "./home-store-footer";
 import { PullToRefresh } from "./pull-to-refresh";
-import { TodaySummary } from "./today-summary";
 
 const ORDERS_POLL_MS = 30 * 1000;
 const FULL_REFRESH_MS = 5 * 60 * 1000;
 
 const SECTIONS: { id: string; title: string; statuses: OrderStatus[] }[] = [
   { id: "new", title: "New", statuses: ["pending"] },
-  { id: "accepted", title: "Accepted", statuses: ["accepted"] },
-  { id: "preparing", title: "Preparing", statuses: ["preparing"] },
-  { id: "ready", title: "Ready", statuses: ["ready"] },
+  { id: "preparing", title: "Preparing", statuses: ["accepted", "preparing"] },
+  { id: "ready", title: "Ready for pickup", statuses: ["ready"] },
 ];
 
 export function HomeOps({
-  storeName,
-  isOpen,
-  todayCount,
-  todaySales,
-  newCustomersToday,
   orders: initialOrders,
+  storeName,
+  slug,
+  isOpen,
+  description,
 }: {
-  storeName: string;
-  isOpen: boolean;
-  todayCount: number;
-  todaySales: number;
-  newCustomersToday: number;
   orders: HomeOrder[];
+  storeName: string;
+  slug: string;
+  isOpen: boolean;
+  description: string | null;
 }) {
   const router = useRouter();
   const routerRef = useRef(router);
@@ -115,33 +111,30 @@ export function HomeOps({
       orders.some((order) => order.id === id && order.order_status === "pending"),
     ),
   );
-  const livePending = orders.filter(
-    (order) => order.order_status === "pending",
+
+  const waiting = orders.filter((order) => order.order_status === "pending").length;
+  const cooking = orders.filter(
+    (order) =>
+      order.order_status === "accepted" || order.order_status === "preparing",
   ).length;
+  const ready = orders.filter((order) => order.order_status === "ready").length;
 
   return (
     <PullToRefresh onRefresh={fullRefresh}>
       <section className="flex flex-col gap-4">
-        <HomeHeader
-          storeName={storeName}
-          isOpen={isOpen}
-          pendingCount={livePending}
-        />
-        <TodaySummary
-          todayCount={todayCount}
-          todaySales={todaySales}
-          pendingCount={livePending}
-          newCustomersToday={newCustomersToday}
-          isOpen={isOpen}
-        />
+        {(waiting > 0 || cooking > 0 || ready > 0) ? (
+          <div className="grid grid-cols-3 gap-2">
+            <MetaPill label="New" value={waiting} tone="accent" />
+            <MetaPill label="Cooking" value={cooking} tone="amber" />
+            <MetaPill label="Ready" value={ready} tone="blue" />
+          </div>
+        ) : null}
 
         {grouped.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-surface px-4 py-10 text-center">
             <p className="text-lg font-semibold">All caught up</p>
             <p className="mt-1 text-sm text-muted">
-              {isOpen
-                ? "No orders need attention. Pull down to refresh."
-                : "Store is closed. Open it when you are ready for orders."}
+              No orders need attention. Pull down to refresh.
             </p>
           </div>
         ) : (
@@ -167,8 +160,41 @@ export function HomeOps({
             </div>
           ))
         )}
+
+        <HomeStoreFooter
+          storeName={storeName}
+          slug={slug}
+          isOpen={isOpen}
+          description={description}
+        />
       </section>
     </PullToRefresh>
+  );
+}
+
+function MetaPill({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: "accent" | "amber" | "blue";
+}) {
+  const shell =
+    tone === "accent"
+      ? "border-accent/40 bg-accent/10 text-accent"
+      : tone === "amber"
+        ? "border-[#b9892d]/40 bg-[#b9892d]/10 text-[#8a6420]"
+        : "border-[#2f6fed]/40 bg-[#2f6fed]/10 text-[#1d4fbe]";
+
+  return (
+    <div className={`rounded-2xl border px-3 py-2.5 text-center ${shell}`}>
+      <p className="text-lg font-bold tabular-nums leading-none">{value}</p>
+      <p className="mt-1 text-[11px] font-semibold tracking-wide uppercase opacity-80">
+        {label}
+      </p>
+    </div>
   );
 }
 

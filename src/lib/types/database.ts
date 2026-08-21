@@ -96,6 +96,7 @@ export type Order = {
   payment_status: PaymentStatus;
   subtotal: number;
   total_amount: number;
+  is_takeaway: boolean;
   notes: string | null;
   created_at: string;
   updated_at: string;

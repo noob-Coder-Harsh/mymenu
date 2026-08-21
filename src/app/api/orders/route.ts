@@ -9,6 +9,7 @@ export async function POST(request: Request) {
     customer_phone?: string;
     payment_method?: PaymentMethod;
     notes?: string;
+    is_takeaway?: boolean;
     items?: { menu_item_variant_id?: string; quantity?: number }[];
   };
 
@@ -24,6 +25,7 @@ export async function POST(request: Request) {
     customerPhone: body.customer_phone ?? "",
     paymentMethod: body.payment_method ?? "cash",
     notes: body.notes ?? "",
+    isTakeaway: body.is_takeaway === true,
     items: (body.items ?? []).map((item) => ({
       menuItemVariantId: item.menu_item_variant_id ?? "",
       quantity: item.quantity ?? 0,

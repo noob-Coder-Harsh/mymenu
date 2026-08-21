@@ -214,6 +214,7 @@ create table public.orders (
   payment_status public.payment_status not null default 'unpaid',
   subtotal numeric(10, 2) not null default 0 check (subtotal >= 0),
   total_amount numeric(10, 2) not null default 0 check (total_amount >= 0),
+  is_takeaway boolean not null default false,
   notes text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),

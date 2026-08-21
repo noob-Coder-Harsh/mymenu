@@ -25,6 +25,15 @@ export const STORE_ASSETS_BUCKET = "store-assets";
 export const MERCHANT_NAV = [
   { href: "/merchant", label: "Home", exact: true },
   { href: "/merchant/orders", label: "Orders", exact: false },
+  { href: "/merchant/reports", label: "Reports", exact: false },
+  { href: "/merchant/menu", label: "Menu", exact: false },
+  { href: "/merchant/store", label: "Store", exact: false },
+] as const;
+
+/** Quick bottom bar — core ops screens only. */
+export const MERCHANT_BOTTOM_NAV = [
+  { href: "/merchant", label: "Home", exact: true },
+  { href: "/merchant/orders", label: "Orders", exact: false },
   { href: "/merchant/menu", label: "Menu", exact: false },
   { href: "/merchant/store", label: "Store", exact: false },
 ] as const;

@@ -11,6 +11,7 @@ import {
   writeCustomerProfile,
 } from "@/lib/customer/profile";
 import type { MenuItemView } from "@/lib/menu/types";
+import { TakeawayToggle } from "@/components/ui/takeaway-toggle";
 import { useCart } from "../_components/cart-provider";
 
 type CheckoutPayment = "upi" | "cash";
@@ -36,6 +37,7 @@ export function CheckoutForm({
   const [phone, setPhone] = useState("");
   const [profileReady, setProfileReady] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<CheckoutPayment>("upi");
+  const [isTakeaway, setIsTakeaway] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -107,6 +109,7 @@ export function CheckoutForm({
           customer_name: name.trim(),
           customer_phone: phone.trim(),
           payment_method: paymentMethod,
+          is_takeaway: isTakeaway,
           notes,
           items: summary.available.map((line) => ({
             menu_item_variant_id: line.variant.id,
@@ -185,6 +188,14 @@ export function CheckoutForm({
           />
         </div>
       </label>
+
+      <div className="flex flex-col gap-2">
+        <p className="text-sm font-semibold">Takeaway?</p>
+        <TakeawayToggle value={isTakeaway} onChange={setIsTakeaway} />
+        <p className="text-xs text-muted">
+          {isTakeaway ? "Pack to go" : "Eat in · default"}
+        </p>
+      </div>
 
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-sm font-semibold">Payment</legend>

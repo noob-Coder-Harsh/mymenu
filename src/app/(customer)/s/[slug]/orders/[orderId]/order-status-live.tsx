@@ -15,6 +15,7 @@ type LiveOrder = {
   order_status: OrderStatus;
   payment_method: PaymentMethod;
   payment_status: PaymentStatus;
+  is_takeaway: boolean;
   total_amount: number;
 };
 
@@ -103,6 +104,7 @@ export function OrderStatusLive({
           order_status: data.order.order_status,
           payment_method: data.order.payment_method,
           payment_status: data.order.payment_status,
+          is_takeaway: data.order.is_takeaway === true,
           total_amount: data.order.total_amount,
         });
       }
@@ -153,6 +155,7 @@ export function OrderStatusLive({
         <p className="mt-1 text-sm text-muted">
           {PAYMENT_METHOD_LABELS[order.payment_method]} · {formatInr(order.total_amount)} ·{" "}
           {PAYMENT_STATUS_LABELS[order.payment_status]}
+          {order.is_takeaway ? " · Takeaway" : " · Eat in"}
         </p>
       </section>
 

@@ -320,7 +320,7 @@ export function StoreEditForm({
         />
         <ToggleRow
           title="Auto-accept orders"
-          subtitle="Skip pending — go straight to accepted"
+          subtitle="Skip pending — go straight to preparing"
           checked={autoAccept}
           onChange={setAutoAccept}
         />

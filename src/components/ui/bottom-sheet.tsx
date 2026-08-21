@@ -7,16 +7,15 @@ export function BottomSheet({
   title,
   onClose,
   children,
+  footer,
   size = "default",
-  padForNav = false,
 }: {
   open: boolean;
   title: string;
   onClose: () => void;
   children: ReactNode;
+  footer?: ReactNode;
   size?: "default" | "form";
-  /** Extra bottom padding for merchant bottom nav. */
-  padForNav?: boolean;
 }) {
   useEffect(() => {
     if (!open) {
@@ -43,6 +42,12 @@ export function BottomSheet({
   const maxHeight =
     size === "form" ? "max-h-[min(92vh,48rem)]" : "max-h-[min(88vh,40rem)]";
 
+  const bodyPad = footer
+    ? "pb-4"
+    : "pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))]";
+
+  const footerPad = "pb-[calc(1rem+env(safe-area-inset-bottom,0px))]";
+
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center md:items-center">
       <button
@@ -55,7 +60,7 @@ export function BottomSheet({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`relative z-10 flex w-full max-w-lg flex-col rounded-t-3xl border border-border bg-surface shadow-xl md:rounded-3xl ${maxHeight}`}
+        className={`relative z-10 flex w-full max-w-lg flex-col overflow-hidden rounded-t-3xl border border-border bg-surface shadow-xl md:rounded-3xl ${maxHeight}`}
       >
         <div className="relative flex shrink-0 items-center border-b border-border px-4 pb-3 pt-3">
           <div
@@ -74,14 +79,15 @@ export function BottomSheet({
           </button>
         </div>
         <div
-          className={`overflow-y-auto overscroll-contain px-4 pt-4 ${
-            padForNav
-              ? "pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-6"
-              : "pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))]"
-          }`}
+          className={`min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 ${bodyPad}`}
         >
           {children}
         </div>
+        {footer ? (
+          <div className={`shrink-0 border-t border-border px-4 pt-3 ${footerPad}`}>
+            {footer}
+          </div>
+        ) : null}
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getMerchantContext } from "@/lib/auth/merchant";
 import { getMerchantOrder } from "@/lib/orders/queries";
@@ -6,7 +5,7 @@ import { canTogglePayment } from "@/lib/orders/status";
 import { formatInr } from "@/lib/money";
 import { formatPhoneDisplay } from "@/lib/phone";
 import { formatTimeIst } from "@/lib/time";
-import { PAYMENT_METHOD_LABELS } from "@/lib/types/labels";
+import { ORDER_SOURCE_LABELS, PAYMENT_METHOD_LABELS } from "@/lib/types/labels";
 import { LiveRefresh } from "../../_components/live-refresh";
 import { OrderStatusActions } from "../_components/order-status-actions";
 import { OrderStatusBadge } from "../_components/order-status-badge";
@@ -35,15 +34,14 @@ export default async function MerchantOrderDetailPage({
       <LiveRefresh />
       <div className="flex items-start justify-between gap-3">
         <div>
-          <Link href="/merchant" className="text-sm font-medium text-accent">
-            Home
-          </Link>
-          <span className="text-muted"> · </span>
-          <Link href="/merchant/orders" className="text-sm font-medium text-accent">
-            Orders
-          </Link>
-          <h1 className="mt-1 text-xl font-semibold tracking-tight">#{order.order_number}</h1>
-          <p className="text-sm text-muted">{formatTimeIst(order.created_at)}</p>
+          <h1 className="text-xl font-semibold tracking-tight">#{order.order_number}</h1>
+          <p className="text-sm text-muted">
+            {formatTimeIst(order.created_at)}
+            {order.order_source === "counter"
+              ? ` · ${ORDER_SOURCE_LABELS.counter}`
+              : ""}
+            {order.is_takeaway ? " · Takeaway" : ""}
+          </p>
         </div>
         <OrderStatusBadge status={order.order_status} />
       </div>

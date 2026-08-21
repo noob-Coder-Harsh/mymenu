@@ -207,7 +207,6 @@ export function MenuBoard({
         title={editingItem ? "Edit item" : "Add item"}
         onClose={closeItemSheet}
         size="form"
-        padForNav
       >
         <ItemForm
           key={editingItem?.id ?? "new-item"}
@@ -222,7 +221,6 @@ export function MenuBoard({
         open={addCategoryOpen}
         title="Add category"
         onClose={() => setAddCategoryOpen(false)}
-        padForNav
       >
         <div className="flex flex-col gap-3">
           <label className="flex flex-col gap-2 text-sm font-medium">
@@ -251,7 +249,6 @@ export function MenuBoard({
         open={manageOpen}
         title="Manage categories"
         onClose={() => setManageOpen(false)}
-        padForNav
       >
         <CategoryManager categories={categories} />
       </BottomSheet>

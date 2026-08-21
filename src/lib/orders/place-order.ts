@@ -5,7 +5,12 @@ import { parsePrice } from "@/lib/money";
 import { formatOrderItemName } from "@/lib/menu/types";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getPublicStoreBySlug } from "@/lib/catalog/public-store";
-import type { Order, OrderItem, PaymentMethod } from "@/lib/types/database";
+import type {
+  Order,
+  OrderItem,
+  OrderSource,
+  PaymentMethod,
+} from "@/lib/types/database";
 
 export type PlaceOrderInput = {
   slug: string;
@@ -14,6 +19,10 @@ export type PlaceOrderInput = {
   paymentMethod: PaymentMethod;
   notes: string;
   items: { menuItemVariantId: string; quantity: number }[];
+  /** Defaults to `qr`. Counter orders skip closed-store + phone rules. */
+  orderSource?: OrderSource;
+  /** Defaults to false (eat in). */
+  isTakeaway?: boolean;
 };
 
 export type PlaceOrderResult = {
@@ -23,9 +32,19 @@ export type PlaceOrderResult = {
 
 const MAX_LINES = 40;
 const MAX_QTY = 20;
+const WALK_IN_NAME = "Walk-in";
 
 function isPaymentMethod(value: string): value is PaymentMethod {
   return value === "upi" || value === "cash";
+}
+
+function isOrderSource(value: string): value is OrderSource {
+  return (
+    value === "counter" ||
+    value === "qr" ||
+    value === "phone" ||
+    value === "other"
+  );
 }
 
 async function allocateOrderNumber(storeId: string, prefix: string) {
@@ -57,18 +76,28 @@ async function allocateOrderNumber(storeId: string, prefix: string) {
 export async function placeOrder(
   input: PlaceOrderInput,
 ): Promise<{ ok: true; data: PlaceOrderResult } | { ok: false; message: string; status: number }> {
+  const orderSource: OrderSource = input.orderSource ?? "qr";
+  if (!isOrderSource(orderSource)) {
+    return { ok: false, message: "Invalid order source", status: 400 };
+  }
+  const isCounter = orderSource === "counter";
+
   const catalog = await getPublicStoreBySlug(input.slug);
   if (!catalog) {
     return { ok: false, message: "Store not found", status: 404 };
   }
 
-  if (!catalog.store.is_open) {
+  if (!isCounter && !catalog.store.is_open) {
     return { ok: false, message: "This store is closed", status: 409 };
   }
 
-  const customerName = input.customerName.trim();
+  let customerName = input.customerName.trim();
   if (customerName.length < 2) {
-    return { ok: false, message: "Please enter your name", status: 400 };
+    if (isCounter) {
+      customerName = WALK_IN_NAME;
+    } else {
+      return { ok: false, message: "Please enter your name", status: 400 };
+    }
   }
 
   let phone: string | null = null;
@@ -78,7 +107,7 @@ export async function placeOrder(
     if (!phone) {
       return { ok: false, message: "Enter a valid 10-digit mobile number", status: 400 };
     }
-  } else if (catalog.settings.customer_phone_required) {
+  } else if (!isCounter && catalog.settings.customer_phone_required) {
     return { ok: false, message: "Phone number is required", status: 400 };
   }
 
@@ -87,7 +116,11 @@ export async function placeOrder(
   }
 
   if (!Array.isArray(input.items) || input.items.length === 0) {
-    return { ok: false, message: "Your cart is empty", status: 400 };
+    return {
+      ok: false,
+      message: isCounter ? "Add at least one item" : "Your cart is empty",
+      status: 400,
+    };
   }
   if (input.items.length > MAX_LINES) {
     return { ok: false, message: "Too many items in this order", status: 400 };
@@ -162,7 +195,12 @@ export async function placeOrder(
 
   const subtotal = Math.round(lines.reduce((sum, line) => sum + line.total_amount, 0) * 100) / 100;
   const notes = input.notes.trim().slice(0, 300) || null;
-  const orderStatus = catalog.settings.auto_accept_orders ? "accepted" : "pending";
+  const isTakeaway = input.isTakeaway === true;
+  const orderStatus = isCounter
+    ? "preparing"
+    : catalog.settings.auto_accept_orders
+      ? "preparing"
+      : "pending";
   const supabase = getSupabaseAdmin();
 
   for (let attempt = 0; attempt < 8; attempt += 1) {
@@ -178,12 +216,13 @@ export async function placeOrder(
         order_number: orderNumber,
         customer_name: customerName,
         customer_phone: phone,
-        order_source: "qr",
+        order_source: orderSource,
         order_status: orderStatus,
         payment_method: input.paymentMethod,
         payment_status: "unpaid",
         subtotal,
         total_amount: subtotal,
+        is_takeaway: isTakeaway,
         notes,
       })
       .select("*")

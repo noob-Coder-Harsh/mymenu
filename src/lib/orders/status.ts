@@ -13,22 +13,28 @@ export const ORDER_FILTERS: { id: MerchantOrderFilter; label: string }[] = [
 ];
 
 export const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  pending: ["accepted", "cancelled"],
+  pending: ["accepted", "preparing", "cancelled"],
   accepted: ["preparing", "cancelled"],
-  preparing: ["ready"],
+  preparing: ["ready", "completed"],
   ready: ["completed"],
   completed: [],
   cancelled: [],
 };
 
+/** Cart-style primary actions — skips the old accepted → preparing tap. */
 export const PRIMARY_STATUS_ACTION: Partial<
   Record<OrderStatus, { to: OrderStatus; label: string }>
 > = {
-  pending: { to: "accepted", label: "Accept order" },
+  pending: { to: "preparing", label: "Accept order" },
   accepted: { to: "preparing", label: "Start preparing" },
-  preparing: { to: "ready", label: "Mark ready" },
-  ready: { to: "completed", label: "Hand over" },
+  preparing: { to: "ready", label: "Ready for pickup" },
+  ready: { to: "completed", label: "Paid & done" },
 };
+
+/** Finish + collect money in one tap (preparing or ready). */
+export function isPaidDoneSource(status: OrderStatus) {
+  return status === "preparing" || status === "ready";
+}
 
 export function parseOrderFilter(value: string | undefined | null): MerchantOrderFilter {
   if (

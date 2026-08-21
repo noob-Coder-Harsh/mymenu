@@ -31,6 +31,7 @@ export default async function CustomerOrderPage({
           order_status: data.order.order_status,
           payment_method: data.order.payment_method,
           payment_status: data.order.payment_status,
+          is_takeaway: data.order.is_takeaway === true,
           total_amount: data.order.total_amount,
         }}
       />
