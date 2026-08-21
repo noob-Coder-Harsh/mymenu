@@ -1,6 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { formatInr } from "@/lib/money";
+import { buildCartEntries } from "@/lib/cart/summary";
+import type { MenuItemView } from "@/lib/menu/types";
 import { useCart } from "./cart-provider";
 
 export function HeaderCartButton({ slug }: { slug: string }) {
@@ -22,30 +25,39 @@ export function HeaderCartButton({ slug }: { slug: string }) {
   );
 }
 
-export function FloatingCartButton({
+export function CheckoutBar({
   slug,
   storeOpen,
+  items,
 }: {
   slug: string;
   storeOpen: boolean;
+  items: MenuItemView[];
 }) {
-  const { itemCount, ready } = useCart();
+  const { lines, itemCount, ready } = useCart();
+  const { subtotal } = buildCartEntries(lines, items);
 
   if (!ready || itemCount === 0 || !storeOpen) {
     return null;
   }
 
   return (
-    <Link
-      href={`/s/${slug}/cart`}
-      className="fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-20 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg shadow-accent/35"
-      aria-label={`View cart, ${itemCount} items`}
-    >
-      <CartIcon className="h-6 w-6" />
-      <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-foreground px-1 text-[10px] font-bold text-accent-foreground">
-        {itemCount > 99 ? "99+" : itemCount}
-      </span>
-    </Link>
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-20">
+      <div className="mx-auto w-full max-w-md px-4 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <Link
+          href={`/s/${slug}/checkout`}
+          className="customer-btn pointer-events-auto w-full shadow-lg shadow-accent/30"
+          aria-label={`Proceed to checkout, ${itemCount} items, ${formatInr(subtotal)}`}
+        >
+          <span className="flex w-full items-center justify-between gap-3 px-1">
+            <span className="truncate">Proceed to checkout</span>
+            <span className="shrink-0 tabular-nums">
+              {itemCount} · {formatInr(subtotal)}
+            </span>
+          </span>
+        </Link>
+      </div>
+    </div>
   );
 }
 

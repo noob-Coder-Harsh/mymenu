@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { OrderStatusStepper } from "@/components/order-status-stepper";
+import {
+  StatusSeal,
+  type StatusSealIcon,
+} from "@/components/ui/status-seal";
 import { isTerminalStatus } from "@/lib/orders/status";
 import { formatInr } from "@/lib/money";
 import {
@@ -23,7 +27,8 @@ function statusPresentation(status: OrderStatus): {
   title: string;
   detail: string;
   shell: string;
-  mark: string;
+  color: string;
+  icon: StatusSealIcon;
 } {
   switch (status) {
     case "pending":
@@ -31,42 +36,48 @@ function statusPresentation(status: OrderStatus): {
         title: "Order placed",
         detail: "We have received your order.",
         shell: "border-accent/25 bg-accent/10",
-        mark: "bg-accent text-accent-foreground",
+        color: "#a65d37",
+        icon: "clock",
       };
     case "accepted":
       return {
         title: "Accepted",
         detail: "The kitchen has your order.",
         shell: "border-accent/20 bg-accent/10",
-        mark: "bg-accent text-accent-foreground",
+        color: "#a65d37",
+        icon: "check",
       };
     case "preparing":
       return {
         title: "Preparing",
         detail: "Your order is being made.",
         shell: "border-[#b9892d]/30 bg-[#b9892d]/10",
-        mark: "bg-[#b9892d] text-white",
+        color: "#b9892d",
+        icon: "cook",
       };
     case "ready":
       return {
         title: "Ready for pickup",
         detail: "Please collect your order.",
         shell: "border-success/30 bg-success/10",
-        mark: "bg-success text-white",
+        color: "#00a63e",
+        icon: "ready",
       };
     case "completed":
       return {
         title: "Completed",
         detail: "Enjoy your order!",
         shell: "border-success/25 bg-success/10",
-        mark: "bg-success text-white",
+        color: "#00a63e",
+        icon: "check",
       };
     case "cancelled":
       return {
         title: "Cancelled",
         detail: "This order was cancelled.",
         shell: "border-danger/30 bg-danger/10",
-        mark: "bg-danger text-white",
+        color: "#b42318",
+        icon: "x",
       };
   }
 }
@@ -121,31 +132,36 @@ export function OrderStatusLive({
   return (
     <>
       <section
-        className={`rounded-2xl border px-4 py-5 text-center shadow-[0_1px_0_rgba(44,24,16,0.03)] ${presentation.shell}`}
+        className={`rounded-2xl border px-4 py-6 text-center shadow-[0_1px_0_rgba(44,24,16,0.03)] ${presentation.shell}`}
       >
-        <span
-          className={`mx-auto flex h-10 w-10 items-center justify-center rounded-full text-lg font-semibold ${presentation.mark}`}
-          aria-hidden
-        >
-          {order.order_status === "cancelled"
-            ? "!"
-            : order.order_status === "completed" || order.order_status === "ready"
-              ? "✓"
-              : "●"}
-        </span>
-        <h1 className="mt-3 text-xl font-bold tracking-tight">{presentation.title}</h1>
+        <StatusSeal
+          color={presentation.color}
+          icon={presentation.icon}
+          label={presentation.title}
+          className="mx-auto h-24 w-24"
+        />
+        <h1 className="mt-4 text-xl font-bold tracking-tight">{presentation.title}</h1>
         <p className="font-script mt-1 text-[17px] text-muted">{presentation.detail}</p>
         {!isTerminalStatus(order.order_status) ? (
-          <p className="mt-2 text-[11px] font-medium tracking-wide text-muted uppercase">
-            Updates automatically
-          </p>
-        ) : null}
-        {order.order_status !== "cancelled" ? (
-          <div className="mt-4 border-t border-dashed border-border/70 pt-4 text-left">
-            <OrderStatusStepper status={order.order_status} />
-          </div>
+          <>
+            <p className="mt-3 text-[11px] font-medium tracking-wide text-muted uppercase">
+              Updates automatically
+            </p>
+            <p className="font-script mt-1 text-[15px] text-muted">
+              Stay on this screen for live status.
+            </p>
+          </>
         ) : null}
       </section>
+
+      {order.order_status !== "cancelled" ? (
+        <section className="customer-card p-4">
+          <p className="mb-3 text-[11px] font-bold tracking-[0.14em] text-muted uppercase">
+            Status
+          </p>
+          <OrderStatusStepper status={order.order_status} />
+        </section>
+      ) : null}
 
       <section className="customer-card p-4">
         <p className="text-[11px] font-bold tracking-[0.14em] text-muted uppercase">

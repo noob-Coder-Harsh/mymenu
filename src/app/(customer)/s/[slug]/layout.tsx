@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { Itim, Montserrat } from "next/font/google";
 import { getPublicStoreBySlug } from "@/lib/catalog/public-store";
 import { PRODUCT_NAME } from "@/lib/constants";
 import { CartProvider } from "./_components/cart-provider";
-import { HeaderCartButton } from "./_components/cart-buttons";
+import { StoreFooter } from "./_components/store-footer";
+import { StoreHeader } from "./_components/store-header";
 
 const menuSans = Montserrat({
   subsets: ["latin"],
@@ -48,37 +48,9 @@ export default async function CustomerStoreLayout({
       className={`${menuSans.variable} ${menuScript.variable} customer-store mx-auto flex min-h-full w-full max-w-md flex-1 flex-col`}
     >
       <CartProvider slug={slug}>
-        <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-border/60 bg-[#fffdf9]/85 px-4 py-2.5 backdrop-blur-md">
-          <div className="min-w-0 flex-1">
-            {catalog ? (
-              <Link
-                href={`/s/${slug}`}
-                className="block truncate text-[15px] font-semibold tracking-tight"
-              >
-                {catalog.store.name}
-              </Link>
-            ) : (
-              <p className="text-[15px] font-semibold">Store</p>
-            )}
-            {catalog ? (
-              <p
-                className={`mt-0.5 flex items-center gap-1.5 text-[11px] font-medium ${
-                  catalog.store.is_open ? "text-success" : "text-danger"
-                }`}
-              >
-                <span
-                  className={`h-1.5 w-1.5 rounded-full ${
-                    catalog.store.is_open ? "bg-success" : "bg-danger"
-                  }`}
-                  aria-hidden
-                />
-                {catalog.store.is_open ? "Open" : "Closed"}
-              </p>
-            ) : null}
-          </div>
-          <HeaderCartButton slug={slug} />
-        </header>
+        <StoreHeader slug={slug} isOpen={catalog?.store.is_open ?? null} />
         <div className="flex flex-1 flex-col">{children}</div>
+        <StoreFooter slug={slug} storeName={catalog?.store.name ?? null} />
       </CartProvider>
     </div>
   );
