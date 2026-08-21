@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { getMerchantContext } from "@/lib/auth/merchant";
-import { toHomeOrder } from "@/lib/orders/home-order";
 import { getActiveOpsOrders } from "@/lib/orders/queries";
 import { HomeOps } from "./_components/home-ops";
 
@@ -17,7 +16,7 @@ export default async function MerchantDashboardPage() {
 
   return (
     <HomeOps
-      orders={active.map(toHomeOrder)}
+      orders={active}
       storeName={store.name}
       slug={store.slug}
       isOpen={store.is_open}

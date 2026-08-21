@@ -1,7 +1,6 @@
 import { requireMerchant } from "@/lib/auth/merchant";
 import { jsonError } from "@/lib/http";
 import { getActiveOpsOrders, getMerchantOrders, getOrderFilterCounts } from "@/lib/orders/queries";
-import { toHomeOrder } from "@/lib/orders/home-order";
 import { placeOrder } from "@/lib/orders/place-order";
 import { parseOrderFilter } from "@/lib/orders/status";
 import type { PaymentMethod } from "@/lib/types/database";
@@ -19,7 +18,7 @@ export async function GET(request: Request) {
     if (scope === "active") {
       const active = await getActiveOpsOrders(auth.store.id);
       return Response.json({
-        orders: active.map(toHomeOrder),
+        orders: active,
         pendingCount: active.filter((order) => order.order_status === "pending")
           .length,
       });

@@ -9,8 +9,15 @@ import {
   hasMultiplePrices,
   type MenuItemView,
 } from "@/lib/menu/types";
+import { addLocalActiveMerchantOrder } from "@/lib/orders/merchant-order-store";
+import { withItems } from "@/lib/orders/types";
 import { PAYMENT_METHOD_LABELS } from "@/lib/types/labels";
-import type { MenuCategory, PaymentMethod } from "@/lib/types/database";
+import type {
+  MenuCategory,
+  Order,
+  OrderItem,
+  PaymentMethod,
+} from "@/lib/types/database";
 import { TakeawayToggle } from "@/components/ui/takeaway-toggle";
 import { CounterItemSheet } from "./counter-item-sheet";
 
@@ -140,12 +147,16 @@ export function CounterOrderPage({
           })),
         }),
       });
-      const data = (await response.json()) as { error?: string };
-      if (!response.ok) {
+      const data = (await response.json()) as {
+        error?: string;
+        order?: Order;
+        items?: OrderItem[];
+      };
+      if (!response.ok || !data.order || !data.items) {
         throw new Error(data.error || "Could not create order");
       }
+      addLocalActiveMerchantOrder(withItems(data.order, data.items));
       router.replace("/merchant");
-      router.refresh();
     } catch (reason) {
       setError(
         reason instanceof Error ? reason.message : "Could not create order",

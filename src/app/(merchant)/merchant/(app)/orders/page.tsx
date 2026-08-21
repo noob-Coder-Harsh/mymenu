@@ -6,6 +6,7 @@ import { parseOrderFilter } from "@/lib/orders/status";
 import { LiveRefresh } from "../_components/live-refresh";
 import { OrderCard } from "./_components/order-card";
 import { OrderFilters } from "./_components/order-filters";
+import { OrdersCacheHydrator } from "./_components/orders-cache-hydrator";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,7 @@ export default async function MerchantOrdersPage({
 
   return (
     <section className="flex flex-col gap-5">
+      <OrdersCacheHydrator orders={orders} />
       <LiveRefresh />
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Orders</h1>

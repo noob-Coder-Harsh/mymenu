@@ -1,11 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { HomeOrder } from "@/lib/orders/home-order";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { toHomeOrder, type HomeOrder } from "@/lib/orders/home-order";
+import { syncActiveMerchantOrders } from "@/lib/orders/merchant-order-store";
+import type { OrderWithItems } from "@/lib/orders/types";
 import type { OrderStatus } from "@/lib/types/database";
 import { HomeOrderCard } from "./home-order-card";
 import { HomeStoreFooter } from "./home-store-footer";
+import { useActiveHomeOrders } from "./merchant-order-provider";
+import { OrderAlertsPrompt, playOrderAlert } from "./order-alerts-prompt";
 import { PullToRefresh } from "./pull-to-refresh";
 
 const ORDERS_POLL_MS = 30 * 1000;
@@ -24,7 +28,7 @@ export function HomeOps({
   isOpen,
   description,
 }: {
-  orders: HomeOrder[];
+  orders: OrderWithItems[];
   storeName: string;
   slug: string;
   isOpen: boolean;
@@ -34,13 +38,20 @@ export function HomeOps({
   const routerRef = useRef(router);
   routerRef.current = router;
 
-  const [orders, setOrders] = useState(initialOrders);
+  const initialKey = initialOrders
+    .map((order) => `${order.id}:${order.updated_at}:${order.order_status}`)
+    .join("|");
+
+  const [mounted, setMounted] = useState(false);
+  useLayoutEffect(() => {
+    syncActiveMerchantOrders(initialOrders);
+    setMounted(true);
+  }, [initialKey, initialOrders]);
+
+  const storeOrders = useActiveHomeOrders();
+  const orders = mounted ? storeOrders : initialOrders.map(toHomeOrder);
   const seenRef = useRef<Set<string> | null>(null);
   const [highlightIds, setHighlightIds] = useState<string[]>([]);
-
-  useEffect(() => {
-    setOrders(initialOrders);
-  }, [initialOrders]);
 
   const pollOrders = useCallback(async () => {
     if (document.visibilityState !== "visible") {
@@ -52,9 +63,9 @@ export function HomeOps({
     if (!response.ok) {
       return;
     }
-    const data = (await response.json()) as { orders?: HomeOrder[] };
+    const data = (await response.json()) as { orders?: OrderWithItems[] };
     if (Array.isArray(data.orders)) {
-      setOrders(data.orders);
+      syncActiveMerchantOrders(data.orders);
     }
   }, []);
 
@@ -101,7 +112,7 @@ export function HomeOps({
     const newcomers = pendingIds.filter((id) => !seenRef.current?.has(id));
     if (newcomers.length > 0) {
       setHighlightIds((current) => [...new Set([...current, ...newcomers])]);
-      playAlert(newcomers.length);
+      playOrderAlert(newcomers.length);
     }
     seenRef.current = new Set(pendingIds);
   }, [orders]);
@@ -122,7 +133,8 @@ export function HomeOps({
   return (
     <PullToRefresh onRefresh={fullRefresh}>
       <section className="flex flex-col gap-4">
-        {(waiting > 0 || cooking > 0 || ready > 0) ? (
+        <OrderAlertsPrompt />
+        {waiting > 0 || cooking > 0 || ready > 0 ? (
           <div className="grid grid-cols-3 gap-2">
             <MetaPill label="New" value={waiting} tone="accent" />
             <MetaPill label="Cooking" value={cooking} tone="amber" />
@@ -206,33 +218,4 @@ function sortSection(id: string, orders: HomeOrder[]) {
     return id === "new" ? -delta : delta;
   });
   return copy;
-}
-
-function playAlert(count: number) {
-  try {
-    const audio = new AudioContext();
-    const oscillator = audio.createOscillator();
-    const gain = audio.createGain();
-    oscillator.type = "sine";
-    oscillator.frequency.value = 880;
-    gain.gain.value = 0.05;
-    oscillator.connect(gain);
-    gain.connect(audio.destination);
-    oscillator.start();
-    oscillator.stop(audio.currentTime + 0.18);
-    void audio.resume();
-  } catch {
-    // Sound can fail until the merchant taps the page.
-  }
-
-  if (typeof Notification === "undefined" || Notification.permission !== "granted") {
-    return;
-  }
-  try {
-    new Notification(count === 1 ? "New order" : `${count} new orders`, {
-      body: "A customer is waiting. Open FoodBaba to accept.",
-    });
-  } catch {
-    // Ignore blocked notifications.
-  }
 }
