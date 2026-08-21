@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { ReceiptDownloadButton } from "@/components/receipts/receipt-download-button";
 import { getMerchantContext } from "@/lib/auth/merchant";
 import { getMerchantOrder } from "@/lib/orders/queries";
 import { canTogglePayment } from "@/lib/orders/status";
@@ -92,6 +93,28 @@ export default async function MerchantOrderDetailPage({
           disabled={!canTogglePayment(order.order_status)}
         />
       </section>
+
+      <ReceiptDownloadButton
+        format="pdf"
+        label="Download bill"
+        storeName={context.store.name}
+        storePhone={context.store.phone}
+        order={{
+          order_number: order.order_number,
+          created_at: order.created_at,
+          is_takeaway: order.is_takeaway,
+          total_amount: order.total_amount,
+          payment_method: order.payment_method,
+          payment_status: order.payment_status,
+          notes: order.notes,
+          items: order.items.map((item) => ({
+            item_name: item.item_name,
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            total_amount: item.total_amount,
+          })),
+        }}
+      />
 
       <OrderStatusActions key={order.order_status} orderId={order.id} status={order.order_status} />
     </section>

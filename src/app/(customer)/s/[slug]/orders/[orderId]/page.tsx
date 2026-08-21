@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ReceiptDownloadButton } from "@/components/receipts/receipt-download-button";
 import { getPublicOrder, getPublicStoreBySlug } from "@/lib/catalog/public-store";
 import { formatInr } from "@/lib/money";
 import { OrderStatusLive } from "./order-status-live";
@@ -60,6 +61,29 @@ export default async function CustomerOrderPage({
           </p>
         ) : null}
       </section>
+
+      <ReceiptDownloadButton
+        format="png"
+        label="Download receipt"
+        storeName={catalog.store.name}
+        storePhone={catalog.store.phone}
+        className="customer-btn"
+        order={{
+          order_number: data.order.order_number,
+          created_at: data.order.created_at,
+          is_takeaway: data.order.is_takeaway === true,
+          total_amount: data.order.total_amount,
+          payment_method: data.order.payment_method,
+          payment_status: data.order.payment_status,
+          notes: data.order.notes,
+          items: data.items.map((item) => ({
+            item_name: item.item_name,
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            total_amount: item.total_amount,
+          })),
+        }}
+      />
 
       <Link href={`/s/${slug}`} className="customer-link text-center">
         Order something else

@@ -14,3 +14,11 @@ export function formatInr(amount: number) {
     maximumFractionDigits: 2,
   }).format(amount);
 }
+
+/** Plain amount for receipts/PDFs — no currency symbol. */
+export function formatAmountPlain(amount: number) {
+  return new Intl.NumberFormat("en-IN", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
