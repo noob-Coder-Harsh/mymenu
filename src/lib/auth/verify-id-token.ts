@@ -15,7 +15,8 @@ export async function verifyFirebaseIdToken(
   }
 
   try {
-    return await getFirebaseAdminAuth().verifyIdToken(token);
+    const auth = await getFirebaseAdminAuth();
+    return await auth.verifyIdToken(token);
   } catch {
     return null;
   }

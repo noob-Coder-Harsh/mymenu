@@ -25,51 +25,57 @@ async function getOwnedStore(userId: string): Promise<Store | null> {
 }
 
 export async function GET() {
-  const context = await getMerchantContext();
-  if (!context) {
-    if (await readSessionCookie()) {
-      await clearSessionCookie();
+  try {
+    const context = await getMerchantContext();
+    if (!context) {
+      if (await readSessionCookie()) {
+        await clearSessionCookie();
+      }
+      return jsonError("Unauthorized", 401);
     }
-    return jsonError("Unauthorized", 401);
-  }
 
-  return Response.json({
-    user: context.user,
-    store: context.store,
-    needsOnboarding: !context.store,
-  });
+    return Response.json({
+      user: context.user,
+      store: context.store,
+      needsOnboarding: !context.store,
+    });
+  } catch (reason) {
+    const message =
+      reason instanceof Error ? reason.message : "Session check failed";
+    return jsonError(message, 500);
+  }
 }
 
 export async function POST(request: Request) {
-  const authorization = request.headers.get("authorization");
-  let idToken = authorization?.startsWith("Bearer ")
-    ? authorization.slice("Bearer ".length).trim()
-    : "";
-
-  if (!idToken) {
-    try {
-      const body = (await request.json()) as { idToken?: string };
-      idToken = body.idToken?.trim() ?? "";
-    } catch {
-      idToken = "";
-    }
-  }
-
-  if (!idToken) {
-    return jsonError("Missing ID token", 400);
-  }
-
-  const decoded = await verifyFirebaseIdToken(`Bearer ${idToken}`);
-  if (!decoded) {
-    return jsonError("Invalid or expired ID token", 401);
-  }
-
-  const phone = decoded.phone_number;
-  if (!phone) {
-    return jsonError("Phone number is required", 400);
-  }
-
   try {
+    const authorization = request.headers.get("authorization");
+    let idToken = authorization?.startsWith("Bearer ")
+      ? authorization.slice("Bearer ".length).trim()
+      : "";
+
+    if (!idToken) {
+      try {
+        const body = (await request.json()) as { idToken?: string };
+        idToken = body.idToken?.trim() ?? "";
+      } catch {
+        idToken = "";
+      }
+    }
+
+    if (!idToken) {
+      return jsonError("Missing ID token", 400);
+    }
+
+    const decoded = await verifyFirebaseIdToken(`Bearer ${idToken}`);
+    if (!decoded) {
+      return jsonError("Invalid or expired ID token", 401);
+    }
+
+    const phone = decoded.phone_number;
+    if (!phone) {
+      return jsonError("Phone number is required", 400);
+    }
+
     const user = await upsertMerchantFromFirebase({
       firebaseUid: decoded.uid,
       phone,
@@ -87,11 +93,17 @@ export async function POST(request: Request) {
   } catch (reason) {
     const message =
       reason instanceof Error ? reason.message : "Could not create session";
-    return jsonError(message, 409);
+    return jsonError(message, 500);
   }
 }
 
 export async function DELETE() {
-  await clearSessionCookie();
-  return new Response(null, { status: 204 });
+  try {
+    await clearSessionCookie();
+    return new Response(null, { status: 204 });
+  } catch (reason) {
+    const message =
+      reason instanceof Error ? reason.message : "Could not clear session";
+    return jsonError(message, 500);
+  }
 }

@@ -38,19 +38,29 @@ async function createServerSession(
     body: JSON.stringify({ idToken }),
   });
 
-  const data = (await response.json()) as {
-    error?: string;
-    needsOnboarding?: boolean;
-  };
+  const raw = await response.text();
+  let data: { error?: string; needsOnboarding?: boolean } = {};
+  if (raw) {
+    try {
+      data = JSON.parse(raw) as typeof data;
+    } catch {
+      throw new Error(
+        response.ok
+          ? "Server returned an invalid response"
+          : `Session failed (${response.status}). Check Firebase Admin env on Vercel.`,
+      );
+    }
+  } else if (!response.ok) {
+    throw new Error(
+      `Session failed (${response.status}). Check Firebase Admin env on Vercel.`,
+    );
+  }
 
   if (!response.ok) {
     throw new Error(data.error || "Could not start session");
   }
 
-  router.replace(
-    data.needsOnboarding ? "/merchant/onboarding" : nextPath,
-  );
-
+  router.replace(data.needsOnboarding ? "/merchant/onboarding" : nextPath);
   router.refresh();
 }
 
