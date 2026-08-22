@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DEMO_STORE_SLUG, PRODUCT_NAME } from "@/lib/constants";
+import { BrandMark } from "@/components/brand/brand-mark";
 import { Bilingual } from "@/components/home/bilingual";
 import { MerchantStartLink } from "@/components/home/merchant-start-link";
 import { PhoneMenuPreview } from "@/components/home/phone-menu-preview";
@@ -10,10 +11,8 @@ export function HomeLanding() {
   return (
     <div className="flex flex-1 flex-col">
       <header className="mx-auto flex w-full max-w-md items-center justify-between px-5 pt-5">
-        <div className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-accent text-sm font-bold text-accent-foreground">
-            FB
-          </span>
+        <div className="flex items-center gap-2.5">
+          <BrandMark size={36} priority />
           <span className="text-base font-semibold tracking-tight">
             {PRODUCT_NAME}
           </span>

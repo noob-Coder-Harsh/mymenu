@@ -27,20 +27,11 @@ export const metadata: Metadata = {
     siteName: "FoodBaba",
     title: SEO.title,
     description: SEO.description,
-    images: [
-      {
-        url: "/images/foddbaba-logo.webp",
-        width: 512,
-        height: 512,
-        alt: "FoodBaba — free QR menu and billing for QSR and food carts",
-      },
-    ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: SEO.title,
     description: SEO.description,
-    images: ["/images/foddbaba-logo.webp"],
   },
   robots: {
     index: true,

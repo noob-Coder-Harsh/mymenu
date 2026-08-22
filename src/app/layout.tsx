@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Noto_Sans_Devanagari } from "next/font/google";
 import { PRODUCT_NAME } from "@/lib/constants";
 import { SEO, getSiteUrl } from "@/lib/seo";
@@ -20,6 +20,16 @@ const notoDevanagari = Noto_Sans_Devanagari({
   weight: ["400", "600", "700"],
 });
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#a65d37" },
+    { media: "(prefers-color-scheme: dark)", color: "#a65d37" },
+  ],
+  colorScheme: "light",
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
@@ -30,10 +40,37 @@ export const metadata: Metadata = {
   applicationName: PRODUCT_NAME,
   authors: [{ name: PRODUCT_NAME }],
   creator: PRODUCT_NAME,
+  publisher: PRODUCT_NAME,
+  keywords: [...SEO.keywords],
   openGraph: {
     type: "website",
     locale: "en_IN",
     siteName: PRODUCT_NAME,
+    title: SEO.title,
+    description: SEO.description,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SEO.title,
+    description: SEO.description,
+  },
+  icons: {
+    icon: [
+      { url: "/brand/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-icon", type: "image/png" },
+      { url: "/brand/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+  },
+  appleWebApp: {
+    capable: true,
+    title: PRODUCT_NAME,
+    statusBarStyle: "default",
+  },
+  formatDetection: {
+    telephone: false,
   },
 };
 

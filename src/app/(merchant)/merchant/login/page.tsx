@@ -1,6 +1,7 @@
 import type { Viewport } from "next";
 import Image from "next/image";
 import { Suspense } from "react";
+import { BrandMark } from "@/components/brand/brand-mark";
 import { PRODUCT_NAME } from "@/lib/constants";
 import { LoginShell } from "./login-shell";
 import { PhoneLoginForm } from "./phone-login-form";
@@ -68,9 +69,12 @@ export default function MerchantLoginPage() {
       </Suspense>
 
       <div className="mt-auto pt-5 text-center">
-        <p className="text-lg font-bold tracking-[-0.04em] text-accent">
-          {PRODUCT_NAME}
-        </p>
+        <div className="flex items-center justify-center gap-2">
+          <BrandMark size={28} />
+          <p className="text-lg font-bold tracking-[-0.04em] text-accent">
+            {PRODUCT_NAME}
+          </p>
+        </div>
         <p className="mt-0.5 text-xs text-muted">For food businesses</p>
         <p className="mt-3 text-[11px] text-muted">
           By continuing, you agree to {PRODUCT_NAME}’s

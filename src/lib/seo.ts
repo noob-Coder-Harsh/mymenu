@@ -50,7 +50,7 @@ export function buildSoftwareJsonLd(siteUrl: string) {
     },
     description: SEO.description,
     url: siteUrl,
-    image: `${siteUrl}/images/foddbaba-logo.webp`,
+    image: `${siteUrl}/opengraph-image`,
     featureList: [
       "Free QR digital menu",
       "Customer ordering from phone",
@@ -72,7 +72,7 @@ export function buildOrganizationJsonLd(siteUrl: string) {
     "@type": "Organization",
     name: PRODUCT_NAME,
     url: siteUrl,
-    logo: `${siteUrl}/images/foddbaba-logo.webp`,
+    logo: `${siteUrl}/brand/mark.svg`,
     description: SEO.description,
   };
 }
