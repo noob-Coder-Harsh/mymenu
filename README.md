@@ -1,8 +1,17 @@
 # FoodBaba
 
-QR menu and ordering for cafes, carts, and small food businesses.
+FoodBaba is a mobile-first QR menu and ordering product for India’s small food businesses—tea stalls, momo carts, juice shops, cafés, QSRs, and cloud kitchens. Customers scan a store QR (or open a shareable link like `/s/{slug}`), browse the menu on their phone, add items to a cart, and place an order with name, phone, and cash/UPI—no app download. Merchants run the kitchen side from `/merchant`: phone OTP login, onboarding a store, building a laminated-menu-style catalog (categories, items, optional size/portion prices), opening or closing the shop, accepting walk-in counter orders, advancing tickets through New → Preparing → Ready → Completed, marking payment, downloading receipts, generating store QR posters, and pulling dated sales reports. The public site is bilingual (English / Hindi) and aimed at owners who need few taps and familiar labels, not a complex POS.
 
-Next.js monolith, Supabase Postgres, Firebase phone OTP for merchants.
+Ideal usage today is a single-store loop: seed or create a store, print or share the QR, keep the store **Open** during service, take customer and counter orders, and work the live order board. Closed stores stay browsable but block add-to-cart and checkout. Live status polling keeps the customer order page in sync while the merchant updates tickets. The stack is a Next.js monolith with Supabase Postgres (and storage for logos/images) and Firebase phone OTP for merchant auth. A full map of the `src` tree is in [`PROJECT_TREE.txt`](PROJECT_TREE.txt).
+
+## What’s in the app so far
+
+| Area | What you get |
+| --- | --- |
+| **Landing** | Marketing home, demo preview, merchant start / login |
+| **Customer** | Public menu, cart, checkout, live order status |
+| **Merchant** | Home ops, menu board, categories/items, orders, counter, store settings, QR, reports, account |
+| **APIs** | Auth session, catalog CRUD, orders, profile, sales report, logo/QR assets, health check |
 
 ## Setup
 
@@ -48,5 +57,16 @@ npm run dev
 - Dashboard shows today orders, sales, new-order count, and recent tickets
 - Customer `/s/{slug}/orders/{orderId}` polls every few seconds so the stepper updates live
 - Mark payment paid/unpaid on the order detail screen
+- `/merchant/counter` — walk-in orders from the same menu
+- `/merchant/store` — link, open/closed, edit profile, QR poster
+- `/merchant/reports` — date-ranged sales export
 
 Enable **Phone** in Firebase Authentication, add `localhost` to authorized domains, and (for production SMS) enable billing. Allow **India (IN)** under Authentication → Settings → SMS region policy.
+
+## Project tree
+
+See [`PROJECT_TREE.txt`](PROJECT_TREE.txt) for the generated `src/` layout (`app`, `components`, `lib`, APIs). Regenerate anytime:
+
+```bash
+tree -a -I 'node_modules|.next' --dirsfirst -F src > PROJECT_TREE.txt
+```

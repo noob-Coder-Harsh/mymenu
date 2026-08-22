@@ -1,0 +1,222 @@
+src/
+|-- app/
+|   |-- (customer)/
+|   |   `-- s/
+|   |       `-- [slug]/
+|   |           |-- _components/
+|   |           |   |-- cart-buttons.tsx
+|   |           |   |-- cart-provider.tsx
+|   |           |   |-- item-sheet.tsx
+|   |           |   |-- quantity-stepper.tsx
+|   |           |   |-- store-footer.tsx
+|   |           |   |-- store-header.tsx
+|   |           |   `-- store-menu.tsx
+|   |           |-- cart/
+|   |           |   |-- cart-view.tsx
+|   |           |   `-- page.tsx
+|   |           |-- checkout/
+|   |           |   |-- checkout-form.tsx
+|   |           |   `-- page.tsx
+|   |           |-- orders/
+|   |           |   `-- [orderId]/
+|   |           |       |-- order-status-live.tsx
+|   |           |       `-- page.tsx
+|   |           |-- layout.tsx
+|   |           |-- not-found.tsx
+|   |           `-- page.tsx
+|   |-- (merchant)/
+|   |   `-- merchant/
+|   |       |-- (app)/
+|   |       |   |-- _components/
+|   |       |   |   |-- home-ops.tsx
+|   |       |   |   |-- home-order-card.tsx
+|   |       |   |   |-- home-store-footer.tsx
+|   |       |   |   |-- icons.tsx
+|   |       |   |   |-- live-refresh.tsx
+|   |       |   |   |-- merchant-order-provider.tsx
+|   |       |   |   |-- merchant-shell.tsx
+|   |       |   |   |-- order-alerts-prompt.tsx
+|   |       |   |   `-- pull-to-refresh.tsx
+|   |       |   |-- account/
+|   |       |   |   |-- account-form.tsx
+|   |       |   |   `-- page.tsx
+|   |       |   |-- counter/
+|   |       |   |   |-- _components/
+|   |       |   |   |   |-- counter-item-sheet.tsx
+|   |       |   |   |   `-- counter-order-page.tsx
+|   |       |   |   `-- page.tsx
+|   |       |   |-- menu/
+|   |       |   |   |-- [itemId]/
+|   |       |   |   |   `-- page.tsx
+|   |       |   |   |-- _components/
+|   |       |   |   |   |-- availability-toggle.tsx
+|   |       |   |   |   |-- item-form.tsx
+|   |       |   |   |   |-- menu-board.tsx
+|   |       |   |   |   `-- menu-item-row.tsx
+|   |       |   |   |-- categories/
+|   |       |   |   |   |-- category-manager.tsx
+|   |       |   |   |   `-- page.tsx
+|   |       |   |   |-- new/
+|   |       |   |   |   `-- page.tsx
+|   |       |   |   `-- page.tsx
+|   |       |   |-- orders/
+|   |       |   |   |-- [orderId]/
+|   |       |   |   |   `-- page.tsx
+|   |       |   |   |-- _components/
+|   |       |   |   |   |-- order-card.tsx
+|   |       |   |   |   |-- order-detail-client.tsx
+|   |       |   |   |   |-- order-filters.tsx
+|   |       |   |   |   |-- order-status-actions.tsx
+|   |       |   |   |   |-- order-status-badge.tsx
+|   |       |   |   |   |-- orders-cache-hydrator.tsx
+|   |       |   |   |   `-- payment-toggle.tsx
+|   |       |   |   `-- page.tsx
+|   |       |   |-- reports/
+|   |       |   |   |-- _components/
+|   |       |   |   |   |-- download-sales-report-button.tsx
+|   |       |   |   |   `-- report-date-controls.tsx
+|   |       |   |   `-- page.tsx
+|   |       |   |-- settings/
+|   |       |   |   `-- page.tsx
+|   |       |   |-- store/
+|   |       |   |   |-- _components/
+|   |       |   |   |   |-- copy-link-button.tsx
+|   |       |   |   |   `-- store-open-toggle.tsx
+|   |       |   |   |-- edit/
+|   |       |   |   |   |-- page.tsx
+|   |       |   |   |   `-- store-edit-form.tsx
+|   |       |   |   `-- page.tsx
+|   |       |   |-- layout.tsx
+|   |       |   `-- page.tsx
+|   |       |-- login/
+|   |       |   |-- login-shell.tsx
+|   |       |   |-- page.tsx
+|   |       |   `-- phone-login-form.tsx
+|   |       `-- onboarding/
+|   |           |-- onboarding-form.tsx
+|   |           `-- page.tsx
+|   |-- api/
+|   |   |-- auth/
+|   |   |   `-- session/
+|   |   |       `-- route.ts
+|   |   |-- health/
+|   |   |   `-- route.ts
+|   |   |-- merchant/
+|   |   |   |-- categories/
+|   |   |   |   |-- [id]/
+|   |   |   |   |   `-- route.ts
+|   |   |   |   `-- route.ts
+|   |   |   |-- items/
+|   |   |   |   |-- [id]/
+|   |   |   |   |   |-- image/
+|   |   |   |   |   |   `-- route.ts
+|   |   |   |   |   `-- route.ts
+|   |   |   |   `-- route.ts
+|   |   |   |-- orders/
+|   |   |   |   |-- [id]/
+|   |   |   |   |   `-- route.ts
+|   |   |   |   `-- route.ts
+|   |   |   |-- profile/
+|   |   |   |   `-- route.ts
+|   |   |   |-- reports/
+|   |   |   |   `-- sales/
+|   |   |   |       `-- route.ts
+|   |   |   `-- stores/
+|   |   |       |-- logo/
+|   |   |       |   `-- route.ts
+|   |   |       |-- qr/
+|   |   |       |   `-- route.ts
+|   |   |       `-- route.ts
+|   |   `-- orders/
+|   |       |-- [orderId]/
+|   |       |   `-- route.ts
+|   |       `-- route.ts
+|   |-- apple-icon.tsx
+|   |-- globals.css
+|   |-- icon.tsx
+|   |-- layout.tsx
+|   |-- manifest.ts
+|   |-- opengraph-image.tsx
+|   |-- page.tsx
+|   |-- robots.ts
+|   `-- sitemap.ts
+|-- components/
+|   |-- brand/
+|   |   `-- brand-mark.tsx
+|   |-- home/
+|   |   |-- bilingual.tsx
+|   |   |-- home-landing.tsx
+|   |   |-- merchant-start-link.tsx
+|   |   `-- phone-menu-preview.tsx
+|   |-- qr/
+|   |   `-- store-qr-panel.tsx
+|   |-- receipts/
+|   |   `-- receipt-download-button.tsx
+|   |-- ui/
+|   |   |-- bottom-sheet.tsx
+|   |   |-- status-seal.tsx
+|   |   `-- takeaway-toggle.tsx
+|   |-- coming-soon.tsx
+|   `-- order-status-stepper.tsx
+|-- lib/
+|   |-- auth/
+|   |   |-- client-logout.ts
+|   |   |-- constants.ts
+|   |   |-- merchant.ts
+|   |   |-- resolve-merchant-destination.ts
+|   |   |-- session.ts
+|   |   `-- verify-id-token.ts
+|   |-- cart/
+|   |   |-- summary.ts
+|   |   `-- types.ts
+|   |-- catalog/
+|   |   |-- public-store.ts
+|   |   `-- types.ts
+|   |-- customer/
+|   |   `-- profile.ts
+|   |-- firebase/
+|   |   |-- admin.ts
+|   |   `-- client.ts
+|   |-- menu/
+|   |   |-- prices.ts
+|   |   |-- queries.ts
+|   |   `-- types.ts
+|   |-- orders/
+|   |   |-- card-outline.ts
+|   |   |-- home-order.ts
+|   |   |-- merchant-order-store.ts
+|   |   |-- place-order.ts
+|   |   |-- queries.ts
+|   |   |-- sales-report.ts
+|   |   |-- status.ts
+|   |   `-- types.ts
+|   |-- qr/
+|   |   |-- designs.ts
+|   |   |-- download.ts
+|   |   `-- render-poster.ts
+|   |-- receipts/
+|   |   |-- build-receipt.ts
+|   |   |-- download-receipt.ts
+|   |   |-- download-sales-report.ts
+|   |   |-- render-receipt.ts
+|   |   `-- types.ts
+|   |-- stores/
+|   |   |-- queries.ts
+|   |   `-- slug.ts
+|   |-- supabase/
+|   |   |-- admin.ts
+|   |   |-- anon.ts
+|   |   `-- storage.ts
+|   |-- types/
+|   |   |-- database.ts
+|   |   `-- labels.ts
+|   |-- constants.ts
+|   |-- env.ts
+|   |-- http.ts
+|   |-- money.ts
+|   |-- phone.ts
+|   |-- seo.ts
+|   `-- time.ts
+`-- proxy.ts
+
+72 directories, 148 files
