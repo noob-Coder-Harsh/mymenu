@@ -2,8 +2,14 @@ import "server-only";
 
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import type { App, ServiceAccount } from "firebase-admin/app";
-import type { Auth } from "firebase-admin/auth";
+import {
+  cert,
+  getApps,
+  initializeApp,
+  type App,
+  type ServiceAccount,
+} from "firebase-admin/app";
+import { getAuth, type Auth } from "firebase-admin/auth";
 
 type ServiceAccountJson = {
   project_id?: string;
@@ -105,8 +111,7 @@ function loadServiceAccount(): ServiceAccount {
   );
 }
 
-async function getAdminApp(): Promise<App> {
-  const { cert, getApps, initializeApp } = await import("firebase-admin/app");
+function getAdminApp(): App {
   const existing = getApps()[0];
   if (existing) {
     return existing;
@@ -119,21 +124,19 @@ async function getAdminApp(): Promise<App> {
   });
 }
 
-export async function getFirebaseAdminAuth(): Promise<Auth> {
+export function getFirebaseAdminAuth(): Auth {
   if (adminAuth) {
     return adminAuth;
   }
-
-  const { getAuth } = await import("firebase-admin/auth");
-  adminAuth = getAuth(await getAdminApp());
+  adminAuth = getAuth(getAdminApp());
   return adminAuth;
 }
 
-export async function probeFirebaseAdmin(): Promise<
-  { ok: true; projectId: string | null } | { ok: false; error: string }
-> {
+export function probeFirebaseAdmin():
+  | { ok: true; projectId: string | null }
+  | { ok: false; error: string } {
   try {
-    const auth = await getFirebaseAdminAuth();
+    const auth = getFirebaseAdminAuth();
     return { ok: true, projectId: auth.app.options.projectId ?? null };
   } catch (reason) {
     return {

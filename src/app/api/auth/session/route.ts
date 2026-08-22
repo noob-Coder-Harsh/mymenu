@@ -66,11 +66,12 @@ export async function POST(request: Request) {
       return jsonError("Missing ID token", 400);
     }
 
-    const decoded = await verifyFirebaseIdToken(`Bearer ${idToken}`);
-    if (!decoded) {
-      return jsonError("Invalid or expired ID token", 401);
+    const verified = await verifyFirebaseIdToken(`Bearer ${idToken}`);
+    if (!verified.ok) {
+      return jsonError(verified.error || "Invalid or expired ID token", 401);
     }
 
+    const decoded = verified.decoded;
     const phone = decoded.phone_number;
     if (!phone) {
       return jsonError("Phone number is required", 400);

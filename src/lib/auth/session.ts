@@ -9,8 +9,7 @@ import {
 import { getFirebaseAdminAuth } from "@/lib/firebase/admin";
 
 export async function createSessionCookie(idToken: string) {
-  const auth = await getFirebaseAdminAuth();
-  return auth.createSessionCookie(idToken, {
+  return getFirebaseAdminAuth().createSessionCookie(idToken, {
     expiresIn: SESSION_MAX_AGE_MS,
   });
 }
@@ -43,6 +42,5 @@ export async function readSessionCookie() {
 }
 
 export async function verifySessionCookieValue(sessionCookie: string) {
-  const auth = await getFirebaseAdminAuth();
-  return auth.verifySessionCookie(sessionCookie, true);
+  return getFirebaseAdminAuth().verifySessionCookie(sessionCookie, true);
 }

@@ -6,18 +6,20 @@ export async function verifyFirebaseIdToken(
   authorizationHeader: string | null,
 ) {
   if (!authorizationHeader?.startsWith("Bearer ")) {
-    return null;
+    return { ok: false as const, error: "Missing bearer token" };
   }
 
   const token = authorizationHeader.slice("Bearer ".length).trim();
   if (!token) {
-    return null;
+    return { ok: false as const, error: "Missing ID token" };
   }
 
   try {
-    const auth = await getFirebaseAdminAuth();
-    return await auth.verifyIdToken(token);
-  } catch {
-    return null;
+    const decoded = await getFirebaseAdminAuth().verifyIdToken(token);
+    return { ok: true as const, decoded };
+  } catch (reason) {
+    const message =
+      reason instanceof Error ? reason.message : "Token verification failed";
+    return { ok: false as const, error: message };
   }
 }

@@ -4,7 +4,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 export async function GET() {
   const env = getEnvStatus();
-  const firebase = await probeFirebaseAdmin();
+  const firebase = probeFirebaseAdmin();
 
   if (!env.supabaseAdmin) {
     return Response.json(

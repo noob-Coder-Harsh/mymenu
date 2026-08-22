@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["firebase-admin"],
+  // Keep Admin + JWKS stack external so Node can load CJS jose@5 (see package overrides).
+  serverExternalPackages: ["firebase-admin", "jwks-rsa", "jose"],
   images: {
     remotePatterns: [
       {
