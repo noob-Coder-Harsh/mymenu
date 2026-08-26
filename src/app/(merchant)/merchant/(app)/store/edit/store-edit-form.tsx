@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
+import { useStoreNameCheck } from "@/lib/stores/use-store-name-check";
 import type { Store, StoreSettings } from "@/lib/types/database";
 
 function phoneLocal(value: string | null) {
@@ -100,6 +101,9 @@ export function StoreEditForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const { status: nameStatus, previewSlug, isTaken } = useStoreNameCheck(name, {
+    currentName: store.name,
+  });
 
   useEffect(() => {
     if (!logoFile) {
@@ -125,6 +129,9 @@ export function StoreEditForm({
     try {
       if (name.trim().length < 2) {
         throw new Error("Enter a store name");
+      }
+      if (isTaken) {
+        throw new Error("Name already exists — use a different one");
       }
 
       const response = await fetch("/api/merchant/stores", {
@@ -215,10 +222,27 @@ export function StoreEditForm({
           <input
             value={name}
             onChange={(event) => setName(event.target.value)}
-            className="h-12 rounded-2xl border border-border bg-background px-4 text-base outline-none focus:border-accent"
+            className={`h-12 rounded-2xl border bg-background px-4 text-base outline-none focus:border-accent ${
+              isTaken ? "border-danger" : "border-border"
+            }`}
             placeholder="Brew Cafe"
             required
+            aria-invalid={isTaken}
+            aria-describedby="store-name-feedback"
           />
+          <span id="store-name-feedback" className="text-xs font-normal">
+            {nameStatus === "checking" ? (
+              <span className="text-muted">Checking name…</span>
+            ) : isTaken ? (
+              <span className="text-danger">
+                Name already exists — use a different one
+              </span>
+            ) : name.trim().length >= 2 && nameStatus === "available" ? (
+              <span className="text-muted">Name is available</span>
+            ) : (
+              <span className="text-muted">Menu link updates with the name</span>
+            )}
+          </span>
         </label>
 
         <label className="flex flex-col gap-2 text-sm font-medium">
@@ -266,8 +290,15 @@ export function StoreEditForm({
         </label>
 
         <div className="rounded-2xl border border-border bg-background px-4 py-3">
-          <p className="text-xs font-medium text-muted">Menu link (fixed)</p>
-          <p className="mt-1 text-sm font-medium">/s/{store.slug}</p>
+          <p className="text-xs font-medium text-muted">Menu link</p>
+          <p className="mt-1 text-sm font-medium">
+            /s/{previewSlug || store.slug}
+          </p>
+          {previewSlug && previewSlug !== store.slug ? (
+            <p className="mt-1 text-xs text-muted">
+              Saving will update the link from /s/{store.slug}
+            </p>
+          ) : null}
         </div>
       </section>
 
@@ -332,7 +363,7 @@ export function StoreEditForm({
       <div className="flex flex-col gap-2">
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || isTaken || nameStatus === "checking"}
           className="flex h-12 items-center justify-center rounded-2xl bg-accent px-5 text-base font-medium text-accent-foreground disabled:opacity-60"
         >
           {loading ? "Saving…" : "Save changes"}

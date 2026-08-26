@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useMerchantOrderPatchPending } from "../../_components/merchant-order-provider";
 import { patchMerchantOrderOptimistic } from "@/lib/orders/merchant-order-store";
 import { PAYMENT_STATUS_LABELS } from "@/lib/types/labels";
 import type { PaymentStatus } from "@/lib/types/database";
@@ -17,9 +18,11 @@ export function PaymentToggle({
   methodLabel?: string;
 }) {
   const [error, setError] = useState<string | null>(null);
+  const busy = useMerchantOrderPatchPending(orderId);
+  const locked = Boolean(disabled) || busy;
 
   function toggle() {
-    if (disabled) {
+    if (locked) {
       return;
     }
     const next: PaymentStatus = paymentStatus === "paid" ? "unpaid" : "paid";
@@ -38,7 +41,7 @@ export function PaymentToggle({
       <button
         type="button"
         onClick={() => toggle()}
-        disabled={disabled}
+        disabled={locked}
         className={`flex h-11 items-center justify-between rounded-2xl px-3.5 text-sm font-medium disabled:opacity-60 ${
           paymentStatus === "paid"
             ? "bg-success text-white"
@@ -50,11 +53,13 @@ export function PaymentToggle({
           {methodLabel ? ` · ${methodLabel}` : ""}
         </span>
         <span className="text-xs opacity-90">
-          {disabled
-            ? "Locked"
-            : paymentStatus === "paid"
-              ? "Mark unpaid"
-              : "Mark paid"}
+          {busy
+            ? "Saving…"
+            : disabled
+              ? "Locked"
+              : paymentStatus === "paid"
+                ? "Mark unpaid"
+                : "Mark paid"}
         </span>
       </button>
       {error ? <p className="text-sm text-danger">{error}</p> : null}

@@ -37,11 +37,15 @@ export function ItemForm({
   item,
   onSaved,
   onCancel,
+  formId = "menu-item-form",
+  onSavingChange,
 }: {
   categories: MenuCategory[];
   item?: MenuItemView;
   onSaved?: () => void;
   onCancel?: () => void;
+  formId?: string;
+  onSavingChange?: (saving: boolean) => void;
 }) {
   const router = useRouter();
   const [name, setName] = useState(item?.name ?? "");
@@ -61,6 +65,14 @@ export function ItemForm({
   const [previewUrl, setPreviewUrl] = useState<string | null>(item?.image_url ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    onSavingChange?.(loading);
+  }, [loading, onSavingChange]);
+
+  useEffect(() => {
+    return () => onSavingChange?.(false);
+  }, [onSavingChange]);
 
   useEffect(() => {
     if (!image) {
@@ -298,23 +310,27 @@ export function ItemForm({
   }
 
   return (
-    <form className="flex flex-col gap-4" onSubmit={onSubmit}>
-      <label className="flex flex-col gap-2 text-sm font-medium">
+    <form
+      id={formId}
+      className="flex w-full max-w-full flex-col gap-4 overflow-x-hidden"
+      onSubmit={onSubmit}
+    >
+      <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
         <FieldLabel text="Item name" required />
         <input
           value={name}
           onChange={(event) => setName(event.target.value)}
-          className="h-12 rounded-2xl border border-border bg-background px-4 text-base outline-none focus:border-accent"
+          className="h-12 w-full min-w-0 rounded-2xl border border-border bg-background px-3 text-base outline-none focus:border-accent sm:px-4"
           placeholder="Cappuccino"
           required
         />
       </label>
 
-      <div className="relative flex flex-col gap-2">
+      <div className="relative flex min-w-0 flex-col gap-2">
         <label className="text-sm font-medium" htmlFor="item-category">
           <FieldLabel text="Category" required />
         </label>
-        <div className="relative">
+        <div className="relative min-w-0">
           <input
             id="item-category"
             value={categoryQuery}
@@ -323,7 +339,7 @@ export function ItemForm({
             onBlur={() => {
               window.setTimeout(() => setCategoryOpen(false), 150);
             }}
-            className="h-12 w-full rounded-2xl border border-border bg-background px-4 pr-14 text-base outline-none focus:border-accent"
+            className="h-12 w-full min-w-0 rounded-2xl border border-border bg-background px-3 pr-14 text-base outline-none focus:border-accent sm:px-4"
             placeholder="Search or type a new category"
             autoComplete="off"
             required
@@ -340,18 +356,18 @@ export function ItemForm({
           ) : null}
         </div>
         {categoryOpen ? (
-          <div className="absolute top-full right-0 left-0 z-20 mt-1 overflow-hidden rounded-2xl border border-border bg-surface shadow-lg">
+          <div className="absolute top-full right-0 left-0 z-20 mt-1 max-w-full overflow-hidden rounded-2xl border border-border bg-surface shadow-lg">
             {categoryMatches.map((category) => (
               <button
                 key={category.id}
                 type="button"
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => selectCategory(category)}
-                className="flex w-full items-center justify-between px-4 py-3 text-left text-sm hover:bg-background"
+                className="flex w-full min-w-0 items-center justify-between gap-2 px-3 py-3 text-left text-sm hover:bg-background sm:px-4"
               >
-                <span>{category.name}</span>
+                <span className="min-w-0 truncate">{category.name}</span>
                 {categoryId === category.id ? (
-                  <span className="text-xs font-medium text-accent">Selected</span>
+                  <span className="shrink-0 text-xs font-medium text-accent">Selected</span>
                 ) : null}
               </button>
             ))}
@@ -363,31 +379,31 @@ export function ItemForm({
                   setCategoryId("");
                   setCategoryOpen(false);
                 }}
-                className="flex w-full border-t border-border px-4 py-3 text-left text-sm font-medium text-accent hover:bg-background"
+                className="flex w-full border-t border-border px-3 py-3 text-left text-sm font-medium break-words text-accent hover:bg-background sm:px-4"
               >
                 Create “{categoryQuery.trim()}” when you save
               </button>
             ) : null}
             {!canCreateCategory && categoryMatches.length === 0 ? (
-              <p className="px-4 py-3 text-sm text-muted">Type a name to create one</p>
+              <p className="px-3 py-3 text-sm text-muted sm:px-4">Type a name to create one</p>
             ) : null}
           </div>
         ) : null}
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex min-w-0 flex-col gap-3">
         <FieldLabel text="Price" required />
         <button
           type="button"
           onClick={() => toggleDifferentPrices(!differentPrices)}
-          className="flex items-center justify-between rounded-2xl border border-border bg-background px-4 py-3 text-left"
+          className="flex w-full min-w-0 items-center justify-between gap-3 rounded-2xl border border-border bg-background px-3 py-3 text-left sm:px-4"
         >
-          <div>
+          <div className="min-w-0">
             <p className="text-sm font-medium">Different prices?</p>
             <p className="text-xs text-muted">Small / Medium / Large, Half / Full…</p>
           </div>
           <span
-            className={`relative h-7 w-12 rounded-full transition-colors ${
+            className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
               differentPrices ? "bg-accent" : "bg-border"
             }`}
             aria-hidden
@@ -401,19 +417,19 @@ export function ItemForm({
         </button>
 
         {!differentPrices ? (
-          <label className="flex flex-col gap-2 text-sm font-medium">
+          <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
             <span className="sr-only">Price in rupees</span>
             <input
               inputMode="decimal"
               value={priceRows[0]?.price ?? ""}
               onChange={(event) => setSinglePrice(event.target.value)}
-              className="h-12 rounded-2xl border border-border bg-background px-4 text-base outline-none focus:border-accent"
+              className="h-12 w-full min-w-0 rounded-2xl border border-border bg-background px-3 text-base outline-none focus:border-accent sm:px-4"
               placeholder="₹ 120"
               required
             />
           </label>
         ) : (
-          <div className="flex flex-col gap-3 rounded-2xl border border-border bg-background p-3">
+          <div className="flex min-w-0 flex-col gap-3 rounded-2xl border border-border bg-background p-2.5 sm:p-3">
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
@@ -426,25 +442,25 @@ export function ItemForm({
             {priceRows.map((row, index) => (
               <div
                 key={row.id ?? `new-${index}`}
-                className="grid grid-cols-[1fr_5.5rem_auto] items-end gap-2"
+                className="flex min-w-0 items-end gap-2"
               >
-                <label className="flex min-w-0 flex-col gap-1.5 text-xs font-medium">
+                <label className="flex min-w-0 flex-1 flex-col gap-1.5 text-xs font-medium">
                   <FieldLabel text="Name" required compact />
                   <input
                     value={row.name}
                     onChange={(event) => updateRow(index, { name: event.target.value })}
-                    className="h-11 rounded-xl border border-border bg-surface px-3 text-sm outline-none focus:border-accent"
+                    className="h-12 w-full min-w-0 rounded-xl border border-border bg-surface px-3 text-base outline-none focus:border-accent"
                     placeholder="Small"
                     required
                   />
                 </label>
-                <label className="flex flex-col gap-1.5 text-xs font-medium">
+                <label className="flex w-[4.75rem] shrink-0 flex-col gap-1.5 text-xs font-medium sm:w-[5.5rem]">
                   <FieldLabel text="₹" required compact />
                   <input
                     inputMode="decimal"
                     value={row.price}
                     onChange={(event) => updateRow(index, { price: event.target.value })}
-                    className="h-11 rounded-xl border border-border bg-surface px-3 text-sm outline-none focus:border-accent"
+                    className="h-12 w-full rounded-xl border border-border bg-surface px-2 text-base outline-none focus:border-accent sm:px-3"
                     placeholder="120"
                     required
                   />
@@ -453,13 +469,13 @@ export function ItemForm({
                   <button
                     type="button"
                     onClick={() => removeRow(index)}
-                    className="mb-1 h-11 px-1 text-xs font-medium text-danger"
+                    className="mb-0.5 flex h-12 w-9 shrink-0 items-center justify-center text-sm font-medium text-danger"
                     aria-label="Remove price"
                   >
                     ✕
                   </button>
                 ) : (
-                  <span className="w-6" />
+                  <span className="w-9 shrink-0" aria-hidden />
                 )}
               </div>
             ))}
@@ -474,9 +490,9 @@ export function ItemForm({
         )}
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex min-w-0 flex-col gap-2">
         <FieldLabel text="Photo" optional />
-        <label className="relative flex min-h-32 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed border-border bg-background px-4 py-5 text-center">
+        <label className="relative flex min-h-32 w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed border-border bg-background px-3 py-5 text-center sm:px-4">
           {previewUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -486,8 +502,8 @@ export function ItemForm({
             />
           ) : null}
           <div
-            className={`relative z-10 flex flex-col items-center gap-1 ${
-              previewUrl ? "rounded-2xl bg-black/45 px-4 py-3 text-white" : "text-muted"
+            className={`relative z-10 flex max-w-full flex-col items-center gap-1 ${
+              previewUrl ? "rounded-2xl bg-black/45 px-3 py-3 text-white" : "text-muted"
             }`}
           >
             <span className="text-2xl" aria-hidden>
@@ -507,18 +523,18 @@ export function ItemForm({
         </label>
       </div>
 
-      <label className="flex flex-col gap-2 text-sm font-medium">
+      <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
         <FieldLabel text="Description" optional />
         <textarea
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           rows={2}
-          className="rounded-2xl border border-border bg-background px-4 py-3 text-base outline-none focus:border-accent"
+          className="w-full min-w-0 rounded-2xl border border-border bg-background px-3 py-3 text-base outline-none focus:border-accent sm:px-4"
           placeholder="Creamy espresso with steamed milk"
         />
       </label>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex min-w-0 flex-col gap-2">
         <ToggleRow
           title="Available now"
           subtitle="Optional — customers can order this"
@@ -533,13 +549,13 @@ export function ItemForm({
         />
       </div>
 
-      {error ? <p className="text-sm text-danger">{error}</p> : null}
+      {error ? <p className="text-sm break-words text-danger">{error}</p> : null}
 
       <div className="flex flex-col gap-2 pt-1">
         <button
           type="submit"
           disabled={loading}
-          className="flex h-12 items-center justify-center rounded-2xl bg-accent px-5 text-base font-medium text-accent-foreground disabled:opacity-60"
+          className="flex h-12 w-full items-center justify-center rounded-2xl bg-accent px-5 text-base font-medium text-accent-foreground disabled:opacity-60"
         >
           {loading ? "Saving…" : "Save item"}
         </button>
@@ -609,9 +625,9 @@ function ToggleRow({
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className="flex items-center justify-between rounded-2xl border border-border bg-background px-4 py-3 text-left"
+      className="flex w-full min-w-0 items-center justify-between gap-3 rounded-2xl border border-border bg-background px-3 py-3 text-left sm:px-4"
     >
-      <div className="min-w-0 pr-3">
+      <div className="min-w-0 flex-1">
         <p className="text-sm font-medium">{title}</p>
         <p className="text-xs text-muted">{subtitle}</p>
       </div>

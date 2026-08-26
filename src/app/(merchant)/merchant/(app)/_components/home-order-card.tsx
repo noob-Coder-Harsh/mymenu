@@ -1,10 +1,12 @@
-import Link from "next/link";
+"use client";
+
 import { formatInr } from "@/lib/money";
 import { orderCardOutlineClass } from "@/lib/orders/card-outline";
 import { formatTimeIst } from "@/lib/time";
 import { ORDER_SOURCE_LABELS, ORDER_STATUS_LABELS } from "@/lib/types/labels";
 import type { HomeOrder } from "@/lib/orders/home-order";
 import { IconChevron } from "./icons";
+import { PendingLink } from "./pending-link";
 
 export function HomeOrderCard({
   order,
@@ -16,8 +18,9 @@ export function HomeOrderCard({
   const outline = orderCardOutlineClass(order.order_status, order.payment_status);
 
   return (
-    <Link
+    <PendingLink
       href={`/merchant/orders/${order.id}`}
+      variant="card"
       className={`flex items-center gap-3 rounded-xl border-2 bg-surface px-3 py-2.5 ${outline} ${
         highlight ? "shadow-[0_0_0_2px_rgba(196,92,38,0.2)]" : ""
       }`}
@@ -46,6 +49,6 @@ export function HomeOrderCard({
       </div>
       <p className="text-sm font-semibold">{formatInr(order.total_amount)}</p>
       <IconChevron className="h-4 w-4 shrink-0 text-muted" />
-    </Link>
+    </PendingLink>
   );
 }

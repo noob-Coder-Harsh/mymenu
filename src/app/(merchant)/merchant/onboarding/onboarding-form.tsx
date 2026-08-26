@@ -5,6 +5,7 @@ import { useState, type FormEvent } from "react";
 import { StoreQrPanel } from "@/components/qr/store-qr-panel";
 import { logoutMerchant } from "@/lib/auth/client-logout";
 import { PRODUCT_NAME } from "@/lib/constants";
+import { useStoreNameCheck } from "@/lib/stores/use-store-name-check";
 import type { Store } from "@/lib/types/database";
 
 export function OnboardingForm({ defaultPhone }: { defaultPhone: string }) {
@@ -14,12 +15,20 @@ export function OnboardingForm({ defaultPhone }: { defaultPhone: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdStore, setCreatedStore] = useState<Store | null>(null);
+  const { status: nameStatus, previewSlug, isTaken } = useStoreNameCheck(name);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
     setLoading(true);
     try {
+      if (name.trim().length < 2) {
+        throw new Error("Enter a store name");
+      }
+      if (isTaken) {
+        throw new Error("Name already exists — use a different one");
+      }
+
       const response = await fetch("/api/merchant/stores", {
         method: "POST",
         credentials: "include",
@@ -85,10 +94,29 @@ export function OnboardingForm({ defaultPhone }: { defaultPhone: string }) {
           <input
             value={name}
             onChange={(event) => setName(event.target.value)}
-            className="h-12 rounded-2xl border border-border bg-surface px-4 text-base outline-none focus:border-accent"
+            className={`h-12 rounded-2xl border bg-surface px-4 text-base outline-none focus:border-accent ${
+              isTaken ? "border-danger" : "border-border"
+            }`}
             placeholder="Brew Cafe"
             autoComplete="organization"
+            aria-invalid={isTaken}
+            aria-describedby="onboarding-name-feedback"
           />
+          <span id="onboarding-name-feedback" className="text-xs font-normal">
+            {nameStatus === "checking" ? (
+              <span className="text-muted">Checking name…</span>
+            ) : isTaken ? (
+              <span className="text-danger">
+                Name already exists — use a different one
+              </span>
+            ) : name.trim().length >= 2 && nameStatus === "available" ? (
+              <span className="text-muted">Menu link: /s/{previewSlug}</span>
+            ) : previewSlug ? (
+              <span className="text-muted">Menu link: /s/{previewSlug}</span>
+            ) : (
+              <span className="text-muted">Your menu link is made from this name</span>
+            )}
+          </span>
         </label>
         <label className="flex flex-col gap-2 text-sm font-medium">
           Store phone
@@ -108,7 +136,7 @@ export function OnboardingForm({ defaultPhone }: { defaultPhone: string }) {
         {error ? <p className="text-sm text-danger">{error}</p> : null}
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || isTaken || nameStatus === "checking" || name.trim().length < 2}
           className="flex h-12 items-center justify-center rounded-2xl bg-accent px-5 text-base font-medium text-accent-foreground disabled:opacity-60"
         >
           {loading ? "Creating…" : "Create store"}

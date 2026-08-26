@@ -34,6 +34,7 @@ export function CheckoutForm({
   const [isTakeaway, setIsTakeaway] = useState(false);
   const [summaryExpanded, setSummaryExpanded] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -49,6 +50,15 @@ export function CheckoutForm({
 
   if (!ready || !profileReady) {
     return <p className="font-script text-base text-muted">Loading checkout…</p>;
+  }
+
+  if (redirecting) {
+    return (
+      <div className="customer-card flex flex-col gap-3 px-4 py-8 text-center">
+        <p className="text-lg font-semibold">Order placed</p>
+        <p className="font-script text-base text-muted">Opening your order status…</p>
+      </div>
+    );
   }
 
   if (!storeOpen) {
@@ -123,12 +133,12 @@ export function CheckoutForm({
         throw new Error(data.error || "Could not place order");
       }
       writeCustomerProfile({ name: name.trim(), phone: phone.trim() });
+      setRedirecting(true);
       clear();
       router.replace(`/s/${slug}/orders/${data.order.id}?placed=1`);
-      router.refresh();
+      return;
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Could not place order");
-    } finally {
       setLoading(false);
     }
   }

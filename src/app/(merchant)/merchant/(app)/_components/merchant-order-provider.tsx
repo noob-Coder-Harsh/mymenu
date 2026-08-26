@@ -6,6 +6,7 @@ import {
   getActiveHomeOrdersFromStore,
   getMerchantOrderFromStore,
   getMerchantOrderStoreVersion,
+  isMerchantOrderPatchPending,
   subscribeMerchantOrders,
 } from "@/lib/orders/merchant-order-store";
 import type { OrderWithItems } from "@/lib/orders/types";
@@ -31,4 +32,9 @@ export function useMerchantOrder(orderId: string): OrderWithItems | undefined {
 export function useActiveHomeOrders(): HomeOrder[] {
   useStoreVersion();
   return getActiveHomeOrdersFromStore();
+}
+
+export function useMerchantOrderPatchPending(orderId: string) {
+  useStoreVersion();
+  return isMerchantOrderPatchPending(orderId);
 }

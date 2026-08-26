@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import type { MenuCategory } from "@/lib/types/database";
 import type { MenuItemView } from "@/lib/menu/types";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
@@ -19,6 +19,7 @@ export function MenuBoard({
   items: MenuItemView[];
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [pending, startTransition] = useTransition();
   const [filter, setFilter] = useState<FilterId>("all");
   const [manageOpen, setManageOpen] = useState(false);
@@ -26,6 +27,21 @@ export function MenuBoard({
   const [newCategoryName, setNewCategoryName] = useState("");
   const [sheetError, setSheetError] = useState<string | null>(null);
   const [itemSheet, setItemSheet] = useState<"new" | MenuItemView | null>(null);
+  const [itemSaving, setItemSaving] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("add") !== "1") {
+      return;
+    }
+    setItemSheet("new");
+    router.replace("/merchant/menu", { scroll: false });
+  }, [searchParams, router]);
+
+  useEffect(() => {
+    if (itemSheet === null) {
+      setItemSaving(false);
+    }
+  }, [itemSheet]);
 
   const activeCategories = useMemo(
     () => categories.filter((category) => category.is_active),
@@ -207,13 +223,25 @@ export function MenuBoard({
         title={editingItem ? "Edit item" : "Add item"}
         onClose={closeItemSheet}
         size="form"
+        headerActions={
+          <button
+            type="submit"
+            form="menu-item-form"
+            disabled={itemSaving}
+            className="text-sm font-semibold text-accent disabled:opacity-60"
+          >
+            {itemSaving ? "Saving…" : "Save"}
+          </button>
+        }
       >
         <ItemForm
           key={editingItem?.id ?? "new-item"}
+          formId="menu-item-form"
           categories={categories}
           item={editingItem}
           onSaved={onItemSaved}
           onCancel={closeItemSheet}
+          onSavingChange={setItemSaving}
         />
       </BottomSheet>
 

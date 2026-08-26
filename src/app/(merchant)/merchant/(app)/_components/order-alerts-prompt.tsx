@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { registerMerchantDeviceToken } from "@/lib/devices/register-device-token";
 
 const SETUP_COMPLETE_KEY = "foodbaba.orderAlerts.setupComplete";
 const DISMISSED_SESSION_KEY = "foodbaba.orderAlerts.dismissedSession";
@@ -183,6 +184,7 @@ export function OrderAlertsPrompt() {
       // Treat as done even if notifications are unsupported — sound still works.
       markSetupComplete();
       setState("hidden");
+      void registerMerchantDeviceToken({ force: true });
     } finally {
       setBusy(false);
     }

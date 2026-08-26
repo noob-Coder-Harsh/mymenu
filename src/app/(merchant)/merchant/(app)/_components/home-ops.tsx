@@ -3,7 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { toHomeOrder, type HomeOrder } from "@/lib/orders/home-order";
-import { syncActiveMerchantOrders } from "@/lib/orders/merchant-order-store";
+import {
+  applyActiveOrderDelta,
+  syncActiveMerchantOrders,
+} from "@/lib/orders/merchant-order-store";
 import type { OrderWithItems } from "@/lib/orders/types";
 import type { OrderStatus } from "@/lib/types/database";
 import { HomeOrderCard } from "./home-order-card";
@@ -12,8 +15,10 @@ import { useActiveHomeOrders } from "./merchant-order-provider";
 import { OrderAlertsPrompt, playOrderAlert } from "./order-alerts-prompt";
 import { PullToRefresh } from "./pull-to-refresh";
 
-const ORDERS_POLL_MS = 30 * 1000;
-const FULL_REFRESH_MS = 5 * 60 * 1000;
+const ORDERS_POLL_MS = 5 * 1000;
+const FULL_SYNC_MS = 5 * 60 * 1000;
+/** After backgrounding this long, prefer a full snapshot for accuracy. */
+const FULL_SYNC_AFTER_HIDDEN_MS = 30 * 1000;
 
 const SECTIONS: { id: string; title: string; statuses: OrderStatus[] }[] = [
   { id: "new", title: "New", statuses: ["pending"] },
@@ -21,14 +26,22 @@ const SECTIONS: { id: string; title: string; statuses: OrderStatus[] }[] = [
   { id: "ready", title: "Ready for pickup", statuses: ["ready"] },
 ];
 
+type ActivePollResponse = {
+  mode?: "delta" | "full";
+  orders?: OrderWithItems[];
+  syncedAt?: string;
+};
+
 export function HomeOps({
   orders: initialOrders,
+  syncedAt: initialSyncedAt,
   storeName,
   slug,
   isOpen,
   description,
 }: {
   orders: OrderWithItems[];
+  syncedAt: string;
   storeName: string;
   slug: string;
   isOpen: boolean;
@@ -38,6 +51,10 @@ export function HomeOps({
   const routerRef = useRef(router);
   routerRef.current = router;
 
+  const syncedAtRef = useRef(initialSyncedAt);
+  const hiddenAtRef = useRef<number | null>(null);
+  const inFlightRef = useRef(false);
+
   const initialKey = initialOrders
     .map((order) => `${order.id}:${order.updated_at}:${order.order_status}`)
     .join("|");
@@ -45,33 +62,60 @@ export function HomeOps({
   const [mounted, setMounted] = useState(false);
   useLayoutEffect(() => {
     syncActiveMerchantOrders(initialOrders);
+    syncedAtRef.current = initialSyncedAt;
     setMounted(true);
-  }, [initialKey, initialOrders]);
+  }, [initialKey, initialOrders, initialSyncedAt]);
 
   const storeOrders = useActiveHomeOrders();
   const orders = mounted ? storeOrders : initialOrders.map(toHomeOrder);
   const seenRef = useRef<Set<string> | null>(null);
   const [highlightIds, setHighlightIds] = useState<string[]>([]);
 
-  const pollOrders = useCallback(async () => {
+  const pollOrders = useCallback(async (options?: { full?: boolean }) => {
     if (document.visibilityState !== "visible") {
       return;
     }
-    const response = await fetch("/api/merchant/orders?scope=active", {
-      credentials: "include",
-    });
-    if (!response.ok) {
+    if (inFlightRef.current) {
       return;
     }
-    const data = (await response.json()) as { orders?: OrderWithItems[] };
-    if (Array.isArray(data.orders)) {
-      syncActiveMerchantOrders(data.orders);
+    inFlightRef.current = true;
+    try {
+      const params = new URLSearchParams({ scope: "active" });
+      const wantFull = options?.full === true;
+      if (wantFull) {
+        params.set("full", "1");
+      } else if (syncedAtRef.current) {
+        params.set("since", syncedAtRef.current);
+      } else {
+        params.set("full", "1");
+      }
+
+      const response = await fetch(`/api/merchant/orders?${params}`, {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        return;
+      }
+      const data = (await response.json()) as ActivePollResponse;
+      if (typeof data.syncedAt === "string" && data.syncedAt) {
+        syncedAtRef.current = data.syncedAt;
+      }
+      if (!Array.isArray(data.orders)) {
+        return;
+      }
+      if (data.mode === "delta") {
+        applyActiveOrderDelta(data.orders);
+      } else {
+        syncActiveMerchantOrders(data.orders);
+      }
+    } finally {
+      inFlightRef.current = false;
     }
   }, []);
 
   const fullRefresh = useCallback(async () => {
     routerRef.current.refresh();
-    await pollOrders();
+    await pollOrders({ full: true });
   }, [pollOrders]);
 
   useEffect(() => {
@@ -80,12 +124,29 @@ export function HomeOps({
     }, ORDERS_POLL_MS);
     const fullId = window.setInterval(() => {
       if (document.visibilityState === "visible") {
+        void pollOrders({ full: true });
         routerRef.current.refresh();
       }
-    }, FULL_REFRESH_MS);
+    }, FULL_SYNC_MS);
+
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        hiddenAtRef.current = Date.now();
+        return;
+      }
+      const hiddenAt = hiddenAtRef.current;
+      hiddenAtRef.current = null;
+      const hiddenFor = hiddenAt ? Date.now() - hiddenAt : 0;
+      void pollOrders({
+        full: hiddenFor >= FULL_SYNC_AFTER_HIDDEN_MS,
+      });
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
     return () => {
       window.clearInterval(ordersId);
       window.clearInterval(fullId);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [pollOrders]);
 

@@ -2,29 +2,8 @@ import { requireMerchant } from "@/lib/auth/merchant";
 import { jsonError } from "@/lib/http";
 import { toE164India } from "@/lib/phone";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { slugify, uniqueSlugCandidate } from "@/lib/stores/slug";
+import { allocateSlug, isStoreNameTaken } from "@/lib/stores/availability";
 import type { StoreSettings } from "@/lib/types/database";
-
-async function allocateSlug(baseName: string) {
-  const supabase = getSupabaseAdmin();
-  let candidate = slugify(baseName);
-
-  for (let attempt = 0; attempt < 8; attempt += 1) {
-    const { data } = await supabase
-      .from("stores")
-      .select("id")
-      .eq("slug", candidate)
-      .maybeSingle();
-
-    if (!data) {
-      return candidate;
-    }
-
-    candidate = uniqueSlugCandidate(slugify(baseName));
-  }
-
-  return uniqueSlugCandidate(slugify(baseName));
-}
 
 export async function GET() {
   const auth = await requireMerchant({ storeRequired: true });
@@ -66,6 +45,10 @@ export async function POST(request: Request) {
   const name = body.name?.trim() ?? "";
   if (name.length < 2) {
     return jsonError("Store name must be at least 2 characters", 400);
+  }
+
+  if (await isStoreNameTaken(name)) {
+    return jsonError("Name already exists — use a different one", 409);
   }
 
   const phone = body.phone?.trim() || auth.user.phone;
@@ -127,6 +110,7 @@ export async function PATCH(request: Request) {
   const storeUpdates: {
     is_open?: boolean;
     name?: string;
+    slug?: string;
     phone?: string | null;
     description?: string | null;
     upi_id?: string | null;
@@ -142,7 +126,15 @@ export async function PATCH(request: Request) {
     if (name.length < 2) {
       return jsonError("Store name must be at least 2 characters", 400);
     }
-    storeUpdates.name = name;
+    if (name.toLowerCase() !== auth.store.name.toLowerCase()) {
+      if (await isStoreNameTaken(name, auth.store.id)) {
+        return jsonError("Name already exists — use a different one", 409);
+      }
+      storeUpdates.name = name;
+      storeUpdates.slug = await allocateSlug(name, auth.store.id);
+    } else if (name !== auth.store.name) {
+      storeUpdates.name = name;
+    }
   }
 
   if ("phone" in body) {

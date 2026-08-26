@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 import {
   shiftDateKey,
   todayDateKeyInIndia,
@@ -8,15 +9,21 @@ import {
 
 export function ReportDateControls({ dateKey }: { dateKey: string }) {
   const router = useRouter();
+  const [pending, startTransition] = useTransition();
   const today = todayDateKeyInIndia();
   const yesterday = shiftDateKey(today, -1);
 
   function go(next: string) {
-    if (next === today) {
-      router.push("/merchant/reports");
+    if (pending) {
       return;
     }
-    router.push(`/merchant/reports?date=${next}`);
+    startTransition(() => {
+      if (next === today) {
+        router.push("/merchant/reports");
+        return;
+      }
+      router.push(`/merchant/reports?date=${next}`);
+    });
   }
 
   return (
@@ -25,11 +32,13 @@ export function ReportDateControls({ dateKey }: { dateKey: string }) {
         <PresetButton
           active={dateKey === today}
           label="Today"
+          disabled={pending}
           onClick={() => go(today)}
         />
         <PresetButton
           active={dateKey === yesterday}
           label="Yesterday"
+          disabled={pending}
           onClick={() => go(yesterday)}
         />
       </div>
@@ -39,15 +48,17 @@ export function ReportDateControls({ dateKey }: { dateKey: string }) {
           type="date"
           value={dateKey}
           max={today}
+          disabled={pending}
           onChange={(event) => {
             const value = event.target.value;
             if (value) {
               go(value);
             }
           }}
-          className="h-11 rounded-2xl border border-border bg-surface px-3 text-base"
+          className="h-11 rounded-2xl border border-border bg-surface px-3 text-base disabled:opacity-60"
         />
       </label>
+      {pending ? <p className="text-xs text-muted">Loading…</p> : null}
     </div>
   );
 }
@@ -55,17 +66,20 @@ export function ReportDateControls({ dateKey }: { dateKey: string }) {
 function PresetButton({
   active,
   label,
+  disabled,
   onClick,
 }: {
   active: boolean;
   label: string;
+  disabled?: boolean;
   onClick: () => void;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex h-10 items-center rounded-2xl px-3.5 text-sm font-medium ${
+      disabled={disabled || active}
+      className={`flex h-10 items-center rounded-2xl px-3.5 text-sm font-medium disabled:opacity-60 ${
         active
           ? "bg-accent text-accent-foreground"
           : "border border-border bg-surface"

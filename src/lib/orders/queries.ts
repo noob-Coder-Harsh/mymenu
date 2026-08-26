@@ -214,3 +214,27 @@ export async function getActiveOpsOrders(
   const grouped = await loadItemsByOrderId(orders.map((order) => order.id));
   return attachItems(orders, grouped);
 }
+
+/** Any store orders touched after `since` (all statuses) — for accurate home deltas. */
+export async function getOrdersUpdatedSince(
+  storeId: string,
+  sinceIso: string,
+): Promise<OrderWithItems[]> {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("store_id", storeId)
+    .gt("updated_at", sinceIso)
+    .order("updated_at", { ascending: true })
+    .limit(LIST_LIMIT);
+
+  if (error) {
+    throw error;
+  }
+
+  const orders = (data ?? []) as Order[];
+  const grouped = await loadItemsByOrderId(orders.map((order) => order.id));
+  return attachItems(orders, grouped);
+}
+

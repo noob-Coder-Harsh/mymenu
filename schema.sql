@@ -224,6 +224,7 @@ create table public.orders (
 create index orders_store_id_idx on public.orders (store_id);
 create index orders_store_status_idx on public.orders (store_id, order_status);
 create index orders_store_created_at_idx on public.orders (store_id, created_at desc);
+create index orders_store_updated_at_idx on public.orders (store_id, updated_at desc);
 
 create trigger orders_set_updated_at
 before update on public.orders
@@ -251,19 +252,23 @@ create index order_items_menu_item_variant_id_idx on public.order_items (menu_it
 
 -- ---------------------------------------------------------------------------
 -- device_tokens (FCM registration tokens for merchants)
+-- One row per physical browser/device (device_id). Same account may have many
+-- devices. token is unique globally so FCM tokens never duplicate.
 -- ---------------------------------------------------------------------------
 
 create table public.device_tokens (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.users (id) on delete cascade,
   store_id uuid not null references public.stores (id) on delete cascade,
+  device_id text not null,
   token text not null,
   platform public.device_platform not null,
   is_active boolean not null default true,
   last_used_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint device_tokens_token_unique unique (token)
+  constraint device_tokens_token_unique unique (token),
+  constraint device_tokens_user_device_unique unique (user_id, device_id)
 );
 
 create index device_tokens_user_id_idx on public.device_tokens (user_id);
@@ -271,6 +276,33 @@ create index device_tokens_store_id_idx on public.device_tokens (store_id);
 
 create trigger device_tokens_set_updated_at
 before update on public.device_tokens
+for each row execute function public.set_updated_at();
+
+-- ---------------------------------------------------------------------------
+-- customer_order_tokens (FCM tokens for a customer watching a specific order)
+-- Same browser/device may register the same FCM token on multiple orders.
+-- ---------------------------------------------------------------------------
+
+create table public.customer_order_tokens (
+  id uuid primary key default gen_random_uuid(),
+  store_id uuid not null references public.stores (id) on delete cascade,
+  order_id uuid not null references public.orders (id) on delete cascade,
+  device_id text not null,
+  token text not null,
+  platform public.device_platform not null,
+  is_active boolean not null default true,
+  last_used_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint customer_order_tokens_order_device_unique unique (order_id, device_id)
+);
+
+create index customer_order_tokens_order_id_idx on public.customer_order_tokens (order_id);
+create index customer_order_tokens_store_id_idx on public.customer_order_tokens (store_id);
+create index customer_order_tokens_token_idx on public.customer_order_tokens (token);
+
+create trigger customer_order_tokens_set_updated_at
+before update on public.customer_order_tokens
 for each row execute function public.set_updated_at();
 
 -- ---------------------------------------------------------------------------
@@ -289,6 +321,7 @@ alter table public.menu_item_variants enable row level security;
 alter table public.orders enable row level security;
 alter table public.order_items enable row level security;
 alter table public.device_tokens enable row level security;
+alter table public.customer_order_tokens enable row level security;
 
 -- Public catalog (QR / customer menu)
 create policy "stores_select_public_active"
@@ -367,6 +400,20 @@ grant insert on table public.order_items to anon, authenticated;
 grant all on table public.orders to service_role;
 grant all on table public.order_items to service_role;
 grant all on table public.menu_item_variants to service_role;
+grant all on table public.device_tokens to service_role;
+grant all on table public.customer_order_tokens to service_role;
+
+-- ---------------------------------------------------------------------------
+-- Upgrade notes (existing DBs)
+-- ---------------------------------------------------------------------------
+-- alter table public.device_tokens add column if not exists device_id text;
+-- update public.device_tokens set device_id = id::text where device_id is null;
+-- alter table public.device_tokens alter column device_id set not null;
+-- create unique index if not exists device_tokens_user_device_unique
+--   on public.device_tokens (user_id, device_id);
+-- create index if not exists orders_store_updated_at_idx
+--   on public.orders (store_id, updated_at desc);
+-- See also scripts/migrate-customer-order-tokens.sql
 
 -- ---------------------------------------------------------------------------
 -- Storage (logos + menu item images). Uploads go through the service role.

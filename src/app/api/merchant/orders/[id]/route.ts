@@ -1,5 +1,6 @@
 import { requireMerchant } from "@/lib/auth/merchant";
 import { jsonError } from "@/lib/http";
+import { notifyCustomerOrderStatus } from "@/lib/notifications/fcm";
 import { getMerchantOrder } from "@/lib/orders/queries";
 import {
   canTogglePayment,
@@ -96,6 +97,16 @@ export async function PATCH(
   const order = await getMerchantOrder(auth.store.id, id);
   if (!order) {
     return jsonError("Order not found", 404);
+  }
+
+  if (updates.order_status && updates.order_status !== existing.order_status) {
+    void notifyCustomerOrderStatus({
+      storeId: auth.store.id,
+      storeSlug: auth.store.slug,
+      orderId: order.id,
+      orderNumber: order.order_number,
+      status: updates.order_status,
+    });
   }
 
   return Response.json({ order });

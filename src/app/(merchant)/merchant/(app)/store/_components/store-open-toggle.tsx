@@ -6,13 +6,19 @@ import { useState, useTransition } from "react";
 export function StoreOpenToggle({ isOpen }: { isOpen: boolean }) {
   const router = useRouter();
   const [open, setOpen] = useState(isOpen);
+  const [saving, setSaving] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const busy = saving || pending;
 
   async function toggle() {
+    if (busy) {
+      return;
+    }
     const next = !open;
     setOpen(next);
     setError(null);
+    setSaving(true);
     try {
       const response = await fetch("/api/merchant/stores", {
         method: "PATCH",
@@ -28,6 +34,8 @@ export function StoreOpenToggle({ isOpen }: { isOpen: boolean }) {
       startTransition(() => router.refresh());
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Could not update store");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -36,12 +44,12 @@ export function StoreOpenToggle({ isOpen }: { isOpen: boolean }) {
       <button
         type="button"
         onClick={() => void toggle()}
-        disabled={pending}
-        className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+        disabled={busy}
+        className={`rounded-full px-3 py-1.5 text-xs font-semibold disabled:opacity-60 ${
           open ? "bg-success text-white" : "bg-background text-muted"
         }`}
       >
-        {pending ? "Saving…" : open ? "Open" : "Closed"}
+        {busy ? "Saving…" : open ? "Open" : "Closed"}
       </button>
       {error ? <p className="max-w-40 text-right text-[11px] text-danger">{error}</p> : null}
     </div>

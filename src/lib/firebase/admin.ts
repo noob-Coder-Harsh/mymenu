@@ -10,6 +10,7 @@ import {
   type ServiceAccount,
 } from "firebase-admin/app";
 import { getAuth, type Auth } from "firebase-admin/auth";
+import { getMessaging, type Messaging } from "firebase-admin/messaging";
 
 type ServiceAccountJson = {
   project_id?: string;
@@ -21,6 +22,7 @@ type ServiceAccountJson = {
 };
 
 let adminAuth: Auth | null = null;
+let adminMessaging: Messaging | null = null;
 
 function stripWrappingQuotes(value: string) {
   let trimmed = value.trim();
@@ -202,6 +204,14 @@ export function getFirebaseAdminAuth(): Auth {
   }
   adminAuth = getAuth(getAdminApp());
   return adminAuth;
+}
+
+export function getFirebaseAdminMessaging(): Messaging {
+  if (adminMessaging) {
+    return adminMessaging;
+  }
+  adminMessaging = getMessaging(getAdminApp());
+  return adminMessaging;
 }
 
 export function probeFirebaseAdmin():

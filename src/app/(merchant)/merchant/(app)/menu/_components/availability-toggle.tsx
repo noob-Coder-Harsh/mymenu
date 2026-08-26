@@ -12,11 +12,17 @@ export function AvailabilityToggle({
 }) {
   const router = useRouter();
   const [available, setAvailable] = useState(isAvailable);
+  const [saving, setSaving] = useState(false);
   const [pending, startTransition] = useTransition();
+  const busy = saving || pending;
 
   async function toggle() {
+    if (busy) {
+      return;
+    }
     const next = !available;
     setAvailable(next);
+    setSaving(true);
     try {
       const response = await fetch(`/api/merchant/items/${itemId}`, {
         method: "PATCH",
@@ -31,6 +37,8 @@ export function AvailabilityToggle({
       startTransition(() => router.refresh());
     } catch {
       setAvailable(!next);
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -41,13 +49,13 @@ export function AvailabilityToggle({
         event.stopPropagation();
         void toggle();
       }}
-      disabled={pending}
-      className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+      disabled={busy}
+      className={`rounded-full px-2.5 py-1 text-[11px] font-semibold disabled:opacity-60 ${
         available ? "bg-success text-white" : "bg-background text-muted"
       }`}
       aria-pressed={available}
     >
-      {available ? "Available" : "Unavailable"}
+      {busy ? "Saving…" : available ? "Available" : "Unavailable"}
     </button>
   );
 }

@@ -13,10 +13,12 @@ export default async function MerchantDashboardPage() {
 
   const active = await getActiveOpsOrders(context.store.id);
   const store = context.store;
+  const syncedAt = new Date().toISOString();
 
   return (
     <HomeOps
       orders={active}
+      syncedAt={syncedAt}
       storeName={store.name}
       slug={store.slug}
       isOpen={store.is_open}

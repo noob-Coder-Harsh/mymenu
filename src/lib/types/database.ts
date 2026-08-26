@@ -118,6 +118,20 @@ export type DeviceToken = {
   id: string;
   user_id: string;
   store_id: string;
+  device_id: string;
+  token: string;
+  platform: DevicePlatform;
+  is_active: boolean;
+  last_used_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CustomerOrderToken = {
+  id: string;
+  store_id: string;
+  order_id: string;
+  device_id: string;
   token: string;
   platform: DevicePlatform;
   is_active: boolean;
@@ -184,8 +198,20 @@ export type Database = {
       device_tokens: Table<
         DeviceToken,
         Partial<DeviceToken> &
-          Pick<DeviceToken, "user_id" | "store_id" | "token" | "platform">,
+          Pick<
+            DeviceToken,
+            "user_id" | "store_id" | "device_id" | "token" | "platform"
+          >,
         Partial<DeviceToken>
+      >;
+      customer_order_tokens: Table<
+        CustomerOrderToken,
+        Partial<CustomerOrderToken> &
+          Pick<
+            CustomerOrderToken,
+            "store_id" | "order_id" | "device_id" | "token" | "platform"
+          >,
+        Partial<CustomerOrderToken>
       >;
     };
     Views: Record<string, never>;

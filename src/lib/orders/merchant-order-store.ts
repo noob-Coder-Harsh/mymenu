@@ -64,15 +64,21 @@ function shouldReplace(existing: OrderWithItems | undefined, next: OrderWithItem
 
 function beginPending(orderId: string) {
   pendingPatches.set(orderId, (pendingPatches.get(orderId) ?? 0) + 1);
+  emit();
 }
 
 function endPending(orderId: string) {
   const count = pendingPatches.get(orderId) ?? 0;
   if (count <= 1) {
     pendingPatches.delete(orderId);
-    return;
+  } else {
+    pendingPatches.set(orderId, count - 1);
   }
-  pendingPatches.set(orderId, count - 1);
+  emit();
+}
+
+export function isMerchantOrderPatchPending(orderId: string) {
+  return (pendingPatches.get(orderId) ?? 0) > 0;
 }
 
 function syncActiveMembership(order: OrderWithItems) {
@@ -174,6 +180,32 @@ export function syncActiveMerchantOrders(orders: OrderWithItems[]) {
   emit();
 }
 
+/**
+ * Apply incremental order rows (any status). Active statuses join the board;
+ * terminal statuses leave it. Does not drop unchanged active orders.
+ */
+export function applyActiveOrderDelta(orders: OrderWithItems[]) {
+  if (orders.length === 0) {
+    return;
+  }
+
+  let changed = false;
+  for (const order of orders) {
+    const existing = byId.get(order.id);
+    if (!shouldReplace(existing, order)) {
+      continue;
+    }
+    byId.set(order.id, order);
+    localActiveIds.delete(order.id);
+    syncActiveMembership(order);
+    changed = true;
+  }
+
+  if (changed) {
+    emit();
+  }
+}
+
 /** After counter create — keep on home until the next poll includes it. */
 export function addLocalActiveMerchantOrder(order: OrderWithItems) {
   byId.set(order.id, order);
@@ -232,6 +264,10 @@ export async function patchMerchantOrderOptimistic(
   orderId: string,
   body: PatchBody,
 ): Promise<{ ok: true; order: OrderWithItems } | { ok: false; error: string }> {
+  if ((pendingPatches.get(orderId) ?? 0) > 0) {
+    return { ok: false, error: "Update already in progress" };
+  }
+
   const previous = applyMerchantOrderOptimistic(orderId, body);
   beginPending(orderId);
 

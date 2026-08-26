@@ -3,14 +3,19 @@ import { notFound } from "next/navigation";
 import { ReceiptDownloadButton } from "@/components/receipts/receipt-download-button";
 import { getPublicOrder, getPublicStoreBySlug } from "@/lib/catalog/public-store";
 import { formatInr } from "@/lib/money";
+import { CustomerOrderNotifyPrompt } from "./customer-order-notify-prompt";
 import { OrderStatusLive } from "./order-status-live";
 
 export default async function CustomerOrderPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string; orderId: string }>;
+  searchParams: Promise<{ placed?: string }>;
 }) {
   const { slug, orderId } = await params;
+  const query = await searchParams;
+  const justPlaced = query.placed === "1";
   const catalog = await getPublicStoreBySlug(slug);
   if (!catalog) {
     notFound();
@@ -35,6 +40,12 @@ export default async function CustomerOrderPage({
           is_takeaway: data.order.is_takeaway === true,
           total_amount: data.order.total_amount,
         }}
+      />
+
+      <CustomerOrderNotifyPrompt
+        slug={slug}
+        orderId={orderId}
+        askOnMount={justPlaced}
       />
 
       <section className="customer-card flex flex-col gap-2.5 p-4">

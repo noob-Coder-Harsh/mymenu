@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, useTransition, type ReactNode } from "react";
 import {
   MERCHANT_BOTTOM_NAV,
   MERCHANT_NAV,
@@ -18,6 +17,7 @@ import {
   IconOrders,
   IconStore,
 } from "./icons";
+import { PendingLink } from "./pending-link";
 
 function isActive(pathname: string, href: string, exact: boolean) {
   if (exact) {
@@ -99,6 +99,7 @@ export function MerchantShell({
   const pathname = usePathname();
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [navPending, startNavTransition] = useTransition();
   const primary = isPrimaryScreen(pathname);
   const title = titleForPath(pathname);
 
@@ -124,9 +125,18 @@ export function MerchantShell({
     };
   }, [drawerOpen]);
 
+  function goBack() {
+    if (navPending) {
+      return;
+    }
+    startNavTransition(() => {
+      router.back();
+    });
+  }
+
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
-      <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur-sm">
+      <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur-sm relative">
         <div className="mx-auto flex h-14 w-full max-w-3xl items-center gap-2 px-3">
           {primary ? (
             <button
@@ -140,8 +150,9 @@ export function MerchantShell({
           ) : (
             <button
               type="button"
-              onClick={() => router.back()}
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-foreground"
+              onClick={goBack}
+              disabled={navPending}
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-foreground disabled:opacity-60"
               aria-label="Go back"
             >
               <IconBack className="h-5 w-5" />
@@ -150,15 +161,32 @@ export function MerchantShell({
           <div className="min-w-0 flex-1">
             <p className="truncate text-base font-semibold tracking-tight">{title}</p>
           </div>
-          {pathname !== "/merchant/counter" ? (
-            <Link
+          {pathname.startsWith("/merchant/menu") ? (
+            <PendingLink
+              href="/merchant/menu?add=1"
+              variant="button"
+              className="flex h-9 shrink-0 items-center rounded-xl bg-accent px-3 text-sm font-semibold text-accent-foreground"
+            >
+              + Add item
+            </PendingLink>
+          ) : pathname !== "/merchant/counter" ? (
+            <PendingLink
               href="/merchant/counter"
+              variant="button"
               className="flex h-9 shrink-0 items-center rounded-xl bg-accent px-3 text-sm font-semibold text-accent-foreground"
             >
               + New
-            </Link>
+            </PendingLink>
           ) : null}
         </div>
+        {navPending ? (
+          <div
+            className="absolute inset-x-0 bottom-0 h-0.5 overflow-hidden"
+            aria-hidden
+          >
+            <div className="h-full w-1/3 animate-pulse bg-accent" />
+          </div>
+        ) : null}
       </header>
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-5 pb-6">
@@ -171,16 +199,18 @@ export function MerchantShell({
             const active = isActive(pathname, item.href, item.exact);
             const Icon = BOTTOM_ICONS[item.href];
             return (
-              <Link
+              <PendingLink
                 key={item.href}
                 href={item.href}
+                exact={item.exact}
+                variant="tab"
                 className={`flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium ${
                   active ? "text-accent" : "text-muted"
                 }`}
               >
                 <Icon className="h-5 w-5" />
                 {item.label}
-              </Link>
+              </PendingLink>
             );
           })}
         </div>
@@ -233,9 +263,11 @@ export function MerchantShell({
                 const active = isActive(pathname, item.href, item.exact);
                 const Icon = NAV_ICONS[item.href];
                 return (
-                  <Link
+                  <PendingLink
                     key={item.href}
                     href={item.href}
+                    exact={item.exact}
+                    variant="row"
                     onClick={() => setDrawerOpen(false)}
                     className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium ${
                       active
@@ -245,24 +277,24 @@ export function MerchantShell({
                   >
                     <Icon className="h-4 w-4" />
                     {item.label}
-                  </Link>
+                  </PendingLink>
                 );
               })}
               <div className="my-2 border-t border-border" />
-              <Link
+              <PendingLink
                 href="/merchant/settings"
                 onClick={() => setDrawerOpen(false)}
-                className="rounded-xl px-3 py-2.5 text-sm text-muted hover:bg-background"
+                className="flex items-center rounded-xl px-3 py-2.5 text-sm text-muted hover:bg-background"
               >
                 Settings
-              </Link>
-              <Link
+              </PendingLink>
+              <PendingLink
                 href="/merchant/account"
                 onClick={() => setDrawerOpen(false)}
-                className="rounded-xl px-3 py-2.5 text-sm text-muted hover:bg-background"
+                className="flex items-center rounded-xl px-3 py-2.5 text-sm text-muted hover:bg-background"
               >
                 Account
-              </Link>
+              </PendingLink>
             </nav>
           </aside>
         </div>

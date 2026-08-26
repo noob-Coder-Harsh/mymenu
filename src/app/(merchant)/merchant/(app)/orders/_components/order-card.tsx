@@ -1,17 +1,20 @@
-import Link from "next/link";
+"use client";
+
 import { formatInr } from "@/lib/money";
 import { orderCardOutlineClass } from "@/lib/orders/card-outline";
 import { formatTimeIst } from "@/lib/time";
 import { ORDER_SOURCE_LABELS, PAYMENT_METHOD_LABELS } from "@/lib/types/labels";
 import type { OrderWithItems } from "@/lib/orders/types";
+import { PendingLink } from "../../_components/pending-link";
 import { OrderStatusBadge } from "./order-status-badge";
 
 export function OrderCard({ order }: { order: OrderWithItems }) {
   const outline = orderCardOutlineClass(order.order_status, order.payment_status);
 
   return (
-    <Link
+    <PendingLink
       href={`/merchant/orders/${order.id}`}
+      variant="card"
       className={`flex flex-col gap-2 rounded-2xl border-2 bg-surface p-4 ${outline}`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -36,6 +39,6 @@ export function OrderCard({ order }: { order: OrderWithItems }) {
         </span>
         <span className="font-semibold">{formatInr(order.total_amount)}</span>
       </div>
-    </Link>
+    </PendingLink>
   );
 }

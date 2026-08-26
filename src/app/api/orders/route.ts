@@ -1,4 +1,5 @@
 import { jsonError } from "@/lib/http";
+import { notifyMerchantsNewOrder } from "@/lib/notifications/fcm";
 import { placeOrder } from "@/lib/orders/place-order";
 import type { PaymentMethod } from "@/lib/types/database";
 
@@ -19,8 +20,9 @@ export async function POST(request: Request) {
     return jsonError("Invalid JSON", 400);
   }
 
+  const slug = body.slug?.trim() ?? "";
   const result = await placeOrder({
-    slug: body.slug?.trim() ?? "",
+    slug,
     customerName: body.customer_name ?? "",
     customerPhone: body.customer_phone ?? "",
     paymentMethod: body.payment_method ?? "cash",
@@ -35,6 +37,13 @@ export async function POST(request: Request) {
   if (!result.ok) {
     return jsonError(result.message, result.status);
   }
+
+  const { order } = result.data;
+  void notifyMerchantsNewOrder({
+    storeId: order.store_id,
+    storeSlug: slug,
+    order,
+  });
 
   return Response.json(result.data, { status: 201 });
 }
